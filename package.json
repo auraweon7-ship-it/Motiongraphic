@@ -1,5 +1,12 @@
 {
+  "name": "motiongraphic",
+  "scripts": {
+    "start": "node timeline-dashboard/server.js"
+  },
   "dependencies": {
     "pptxgenjs": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
