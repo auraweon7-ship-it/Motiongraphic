@@ -1,0 +1,3274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타임라인 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #6366f1;
+  --primary-light: #a5b4fc;
+  --primary-dark: #4338ca;
+  --primary-glow: rgba(99,102,241,0.25);
+  --accent: #f59e0b;
+  --accent-light: #fcd34d;
+  --bg: #f0f2f8;
+  --bg-gradient: linear-gradient(135deg, #e8eaf6 0%, #f0f2f8 50%, #e8f0fe 100%);
+  --card: rgba(255,255,255,0.82);
+  --card-solid: #ffffff;
+  --card-hover: rgba(255,255,255,0.95);
+  --text: #1a1a2e;
+  --text-secondary: #6b7194;
+  --border: rgba(99,102,241,0.12);
+  --border-solid: #e0e2ee;
+  --danger: #f43f5e;
+  --danger-light: #ffe4e6;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --shadow: 0 2px 8px rgba(99,102,241,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(99,102,241,0.1), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(99,102,241,0.15), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-glow: 0 0 20px rgba(99,102,241,0.2);
+  --timeline-line: linear-gradient(to bottom, var(--primary-light), var(--primary), var(--primary-light));
+  --timeline-dot: var(--primary);
+  --timeline-card-bg: var(--card);
+  --font-size-event: 0.82rem;
+  --media-max-height: none;
+  --media-position: top;
+  --glass-blur: blur(20px);
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --bg: #0c0e1a;
+  --bg-gradient: linear-gradient(135deg, #0c0e1a 0%, #131529 50%, #0f1124 100%);
+  --card: rgba(30,33,58,0.75);
+  --card-solid: #1e213a;
+  --card-hover: rgba(30,33,58,0.92);
+  --text: #e8eaf6;
+  --text-secondary: #8b8fb0;
+  --border: rgba(99,102,241,0.18);
+  --border-solid: #2a2d4a;
+  --timeline-card-bg: rgba(30,33,58,0.75);
+  --shadow: 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 30px rgba(99,102,241,0.3);
+  --primary-glow: rgba(99,102,241,0.35);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Header */
+.header {
+  background: rgba(99,102,241,0.92);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: white;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.header-top {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.header-logo {
+  width: 42px;
+  height: 42px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  backdrop-filter: blur(10px);
+}
+.header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.header h1 span {
+  font-weight: 400;
+  opacity: 0.7;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+.header-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all var(--transition);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.btn:hover::after { opacity: 1; }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: white;
+  color: var(--primary-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.btn-primary:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); transform: translateY(-1px); }
+.btn-secondary {
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.35); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #e11d48; transform: translateY(-1px); }
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+}
+.btn-success:hover { box-shadow: 0 4px 16px rgba(16,185,129,0.4); transform: translateY(-1px); }
+.btn-outline {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border-solid);
+  backdrop-filter: blur(8px);
+}
+.btn-outline:hover { border-color: var(--primary-light); background: var(--card-hover); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border: none; }
+.btn-ghost:hover { background: var(--border); color: var(--text); }
+.btn-sm { padding: 0.3rem 0.55rem; font-size: 0.7rem; border-radius: var(--radius-xs); }
+.btn-icon { padding: 0.5rem; min-width: 36px; justify-content: center; }
+.btn-icon.btn-sm { padding: 0.3rem; min-width: 28px; }
+
+/* Main Layout */
+.main {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+
+/* Card */
+.card {
+  background: var(--card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+.card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+.card-title .icon-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.form-group { margin-bottom: 0.9rem; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.8rem;
+  background: var(--card-solid);
+  color: var(--text);
+  transition: all var(--transition);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.form-group input::placeholder, .form-group textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+.form-group textarea { resize: vertical; min-height: 72px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+/* File Input */
+.file-input-wrapper {
+  position: relative;
+  border: 2px dashed var(--border-solid);
+  border-radius: var(--radius-sm);
+  padding: 1.2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--card-solid);
+}
+.file-input-wrapper:hover {
+  border-color: var(--primary-light);
+  background: rgba(99,102,241,0.04);
+}
+.file-input-wrapper input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-input-wrapper .file-icon { font-size: 1.3rem; display: block; margin-bottom: 0.3rem; }
+.file-input-wrapper span { font-size: 0.7rem; color: var(--text-secondary); }
+.file-list { margin-top: 0.5rem; }
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  margin-bottom: 0.35rem;
+  transition: background var(--transition);
+}
+.file-item:hover { background: var(--card-hover); }
+
+/* Toggle */
+.toggle-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-group:last-child { border-bottom: none; }
+.toggle-group label { font-size: 0.76rem; cursor: pointer; font-weight: 500; }
+.toggle {
+  width: 46px;
+  height: 26px;
+  background: var(--border-solid);
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  flex-shrink: 0;
+}
+.toggle.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle.active::after { transform: translateX(20px); }
+
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+.stat-card {
+  padding: 0.85rem;
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+.stat-card.stat-primary::before { background: linear-gradient(90deg, var(--primary), var(--primary-light)); }
+.stat-card.stat-accent::before { background: linear-gradient(90deg, var(--accent), var(--accent-light)); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.stat-primary .stat-value { color: var(--primary); }
+.stat-accent .stat-value { color: var(--accent); }
+.stat-label { font-size: 0.65rem; color: var(--text-secondary); font-weight: 500; margin-top: 0.15rem; }
+
+/* Timeline Preview */
+.timeline-preview {
+  min-height: 500px;
+}
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.preview-header-left h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.preview-header-left p {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+}
+.layout-switcher {
+  display: flex;
+  background: var(--card-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 2px;
+}
+.layout-btn {
+  padding: 0.4rem 0.7rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.layout-btn:hover { color: var(--text); background: var(--border); }
+.layout-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 6px var(--primary-glow);
+}
+
+/* Timeline */
+.timeline-container {
+  position: relative;
+  padding: 1.5rem 0;
+}
+.timeline-line {
+  position: absolute;
+  left: 27px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--timeline-line);
+  border-radius: 2px;
+}
+
+.timeline-event {
+  position: relative;
+  padding-left: 62px;
+  margin-bottom: 1.75rem;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.timeline-event.tl-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.timeline-footer {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.timeline-footer.tl-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.timeline-dot {
+  position: absolute;
+  left: 8px;
+  top: 1.1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--timeline-dot);
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 2px var(--timeline-dot), 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 2;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-event:hover .timeline-dot {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px var(--timeline-dot), 0 0 16px rgba(99,102,241,0.3);
+}
+.timeline-dot .dot-year {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+.timeline-dot .dot-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Timeline Style Variants */
+.timeline-style-modern .timeline-line {
+  background: linear-gradient(180deg, #6366f1 0%, #a855f7 30%, #ec4899 60%, #f59e0b 100%);
+  width: 4px;
+}
+.timeline-style-modern .timeline-dot {
+  border-width: 4px;
+  box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(99,102,241,0.3) !important;
+}
+.timeline-style-neon .timeline-line {
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary), 0 0 20px rgba(99,102,241,0.3);
+  width: 3px;
+}
+.timeline-style-neon .timeline-dot {
+  box-shadow: 0 0 8px currentColor, 0 0 20px rgba(99,102,241,0.4), 0 0 0 2px currentColor !important;
+}
+.timeline-style-minimal .timeline-line {
+  background: repeating-linear-gradient(to bottom, var(--primary) 0, var(--primary) 8px, transparent 8px, transparent 16px);
+  width: 2px;
+}
+.timeline-style-minimal .timeline-dot {
+  width: 28px;
+  height: 28px;
+  left: 14px;
+  border-width: 2px;
+}
+.timeline-style-minimal .timeline-dot .dot-year { font-size: 0.5rem; }
+.timeline-style-bold .timeline-line {
+  background: var(--primary);
+  width: 6px;
+  border-radius: 3px;
+}
+.timeline-style-bold .timeline-dot {
+  width: 48px;
+  height: 48px;
+  left: 4px;
+  border-width: 4px;
+  box-shadow: 0 0 0 3px var(--primary), 0 4px 16px rgba(0,0,0,0.15) !important;
+}
+.timeline-style-bold .timeline-dot .dot-year { font-size: 0.7rem; }
+
+/* Card Style Variants */
+.card-style-solid .timeline-card {
+  background: var(--card-solid);
+  backdrop-filter: none;
+  border: 1px solid var(--border-solid);
+}
+.card-style-outline .timeline-card {
+  background: transparent;
+  backdrop-filter: none;
+  border: 2px solid var(--primary);
+  box-shadow: none;
+}
+.card-style-outline .timeline-card:hover {
+  background: rgba(99,102,241,0.04);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.card-style-gradient .timeline-card {
+  background: linear-gradient(135deg, var(--card) 0%, rgba(99,102,241,0.08) 100%);
+  border: 1px solid rgba(99,102,241,0.15);
+}
+[data-theme="dark"] .card-style-gradient .timeline-card {
+  background: linear-gradient(135deg, var(--card) 0%, rgba(99,102,241,0.15) 100%);
+}
+.card-style-flat .timeline-card {
+  background: var(--card-solid);
+  backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+  border-radius: var(--radius-sm);
+}
+.card-style-flat .timeline-card:hover {
+  box-shadow: none;
+  transform: translateX(4px);
+}
+
+.timeline-date {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.65rem;
+  background: rgba(99,102,241,0.08);
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.timeline-card {
+  background: var(--timeline-card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: all var(--transition);
+  overflow: hidden;
+}
+.timeline-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  transition: opacity var(--transition);
+}
+.timeline-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateX(4px);
+  border-color: rgba(99,102,241,0.25);
+}
+
+.timeline-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.timeline-card-body {
+  font-size: var(--font-size-event);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0.5rem;
+}
+.timeline-card-media {
+  margin-top: 0.85rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.timeline-card-media img {
+  width: 100%;
+  max-height: var(--media-max-height);
+  object-fit: cover;
+  object-position: var(--media-position);
+  display: block;
+  transition: transform 0.4s ease;
+}
+.timeline-card-media:hover img { transform: scale(1.03); }
+.timeline-card-media iframe {
+  width: 100%;
+  max-height: var(--media-max-height, none);
+  aspect-ratio: 16/9;
+  border: none;
+  display: block;
+}
+
+/* Media position: top */
+.media-pos-top .timeline-card { display: flex; flex-direction: column; }
+.media-pos-top .timeline-card .timeline-card-media { order: -1; margin-top: 0; margin-bottom: 0.85rem; }
+/* Media position: left */
+.media-pos-left .timeline-card { display: flex; flex-direction: row; gap: 1rem; align-items: flex-start; }
+.media-pos-left .timeline-card .timeline-card-media { margin-top: 0; flex-shrink: 0; width: 40%; }
+.media-pos-left .timeline-card .timeline-card-media img { border-radius: var(--radius-sm); }
+/* Media position: background */
+.media-pos-bg .timeline-card { position: relative; overflow: hidden; }
+.media-pos-bg .timeline-card .timeline-card-media { position: absolute; inset: 0; margin: 0; border: none; border-radius: 0; z-index: 0; }
+.media-pos-bg .timeline-card .timeline-card-media img { width: 100%; height: 100%; max-height: none; object-fit: cover; opacity: 0.2; }
+.media-pos-bg .timeline-card .timeline-card-title,
+.media-pos-bg .timeline-card .timeline-card-body,
+.media-pos-bg .timeline-card .timeline-card-tags,
+.media-pos-bg .timeline-card .timeline-card-actions { position: relative; z-index: 1; }
+
+.timeline-card-actions {
+  display: flex;
+  gap: 0.25rem;
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all var(--transition);
+  background: var(--card-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-xs);
+  padding: 3px;
+  box-shadow: var(--shadow-md);
+}
+.timeline-card:hover .timeline-card-actions { opacity: 1; transform: translateY(0); }
+
+.timeline-card-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+.tag {
+  font-size: 0.63rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--primary);
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid rgba(99,102,241,0.12);
+  transition: all var(--transition);
+}
+.tag:hover { background: rgba(99,102,241,0.15); }
+
+/* Alternate layout */
+.timeline-container.layout-alternate .timeline-line { left: 50%; transform: translateX(-50%); }
+.timeline-container.layout-alternate .timeline-event { padding-left: 0; width: 50%; }
+.timeline-container.layout-alternate .timeline-event:nth-child(odd) { padding-right: 44px; text-align: right; margin-left: 0; }
+.timeline-container.layout-alternate .timeline-event:nth-child(odd) .timeline-dot { left: auto; right: -12px; }
+.timeline-container.layout-alternate .timeline-event:nth-child(odd) .timeline-card:hover { transform: translateX(-4px); }
+.timeline-container.layout-alternate .timeline-event:nth-child(even) { margin-left: 50%; padding-left: 44px; }
+.timeline-container.layout-alternate .timeline-event:nth-child(even) .timeline-dot { left: -12px; }
+
+/* Alternate footer */
+.timeline-container.layout-alternate .timeline-footer {
+  width: 100%;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timeline-container.layout-alternate .timeline-footer-dot {
+  position: relative;
+  left: auto;
+  top: auto;
+  margin-bottom: 1rem;
+}
+.timeline-container.layout-alternate .timeline-footer-content {
+  max-width: 500px;
+  width: 100%;
+}
+
+/* Centered layout */
+.timeline-container.layout-centered { text-align: center; }
+.timeline-container.layout-centered .timeline-line { left: 50%; transform: translateX(-50%); }
+.timeline-container.layout-centered .timeline-event { padding-left: 0; max-width: 600px; margin-left: auto; margin-right: auto; }
+.timeline-container.layout-centered .timeline-dot { left: 50%; transform: translateX(-50%); }
+.timeline-container.layout-centered .timeline-card:hover { transform: translateY(-4px) !important; }
+.timeline-container.layout-centered .timeline-footer {
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timeline-container.layout-centered .timeline-footer-dot {
+  position: relative;
+  left: auto;
+  top: auto;
+  margin-bottom: 1rem;
+}
+.timeline-container.layout-centered .timeline-footer-content {
+  max-width: 500px;
+  width: 100%;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,30,0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--card-solid);
+  border-radius: 20px;
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
+  transform: translateY(24px) scale(0.97);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-overlay.active .modal { transform: translateY(0) scale(1); }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Emoji Picker */
+.emoji-picker-trigger {
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--card-solid);
+  border: 1.5px solid var(--border-solid);
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.emoji-picker-trigger:hover { border-color: var(--primary-light); box-shadow: 0 0 0 3px var(--primary-glow); }
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0.6rem;
+  background: var(--card-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  box-shadow: var(--shadow-md);
+}
+.emoji-grid span {
+  font-size: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s;
+}
+.emoji-grid span:hover { background: var(--border); transform: scale(1.15); }
+
+/* Color picker */
+.color-options { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.color-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2.5px solid transparent;
+  transition: all var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active { border-color: var(--text); transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.toast {
+  background: var(--card-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-lg);
+  font-size: 0.76rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 260px;
+  backdrop-filter: blur(12px);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 1.5rem;
+  color: var(--text-secondary);
+}
+.empty-state .empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.25rem;
+  background: rgba(99,102,241,0.08);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+.empty-state h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+.empty-state p { font-size: 0.78rem; margin-bottom: 1.5rem; line-height: 1.6; }
+
+/* Timeline Footer */
+.timeline-footer {
+  position: relative;
+  padding-left: 62px;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+}
+.timeline-footer-dot {
+  position: absolute;
+  left: 8px;
+  top: 2rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 2px var(--primary), 0 2px 8px rgba(99,102,241,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.timeline-footer-dot::after {
+  content: '✦';
+  color: white;
+  font-size: 14px;
+}
+.timeline-footer-content {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  padding: 1.25rem;
+  background: var(--timeline-card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.timeline-footer-content .name {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+.timeline-footer-content .affiliation { margin-top: 0.25rem; }
+.timeline-footer-content a { color: var(--primary); text-decoration: none; font-weight: 500; transition: color var(--transition); }
+.timeline-footer-content a:hover { color: var(--primary-dark); }
+.timeline-footer .footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.timeline-footer .footer-links .divider { color: var(--border-solid); }
+
+/* Responsive */
+@media (max-width: 960px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; }
+  .header-top { flex-direction: column; align-items: stretch; }
+  .header-actions { justify-content: center; }
+  .timeline-container.layout-alternate .timeline-line { left: 26px; transform: none; }
+  .timeline-container.layout-alternate .timeline-event { width: 100%; padding-left: 62px; padding-right: 0; text-align: left; margin-left: 0; }
+  .timeline-container.layout-alternate .timeline-event:nth-child(odd) { padding-right: 0; text-align: left; }
+  .timeline-container.layout-alternate .timeline-event:nth-child(odd) .timeline-dot { left: 8px; right: auto; }
+  .timeline-container.layout-alternate .timeline-event:nth-child(odd) .timeline-card:hover { transform: translateX(4px); }
+  .timeline-container.layout-alternate .timeline-event:nth-child(even) { margin-left: 0; padding-left: 62px; }
+  .timeline-container.layout-alternate .timeline-event:nth-child(even) .timeline-dot { left: 8px; }
+  .timeline-container.layout-alternate .timeline-footer { display: block; padding-left: 62px; }
+  .timeline-container.layout-alternate .timeline-footer-dot { position: absolute; left: 8px; margin-bottom: 0; }
+  .timeline-container.layout-centered .timeline-footer { display: block; padding-left: 62px; }
+  .timeline-container.layout-centered .timeline-footer-dot { position: absolute; left: 8px; margin-bottom: 0; }
+}
+@media (max-width: 500px) {
+  .header-top { padding: 0.85rem 1rem; }
+  .main { padding: 1rem; gap: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .modal { padding: 1.25rem; border-radius: 16px; }
+  .card { padding: 1rem; }
+  .timeline-card { padding: 1rem; }
+}
+
+/* Drag */
+.timeline-event.dragging { opacity: 0.35; transform: scale(0.98); }
+.timeline-event.drag-over { border-top: 2px solid var(--primary); }
+
+/* Print */
+@media print {
+  .header, .sidebar, .toast-container { display: none !important; }
+  .main { grid-template-columns: 1fr !important; }
+  .timeline-card-actions { display: none !important; }
+  body { background: white !important; }
+  .card { box-shadow: none !important; border: 1px solid #ddd !important; backdrop-filter: none !important; }
+}
+
+/* Export modal cards */
+.export-options { display: flex; flex-direction: column; gap: 0.6rem; }
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1.5px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--card-solid);
+}
+.export-option:hover {
+  border-color: var(--primary-light);
+  background: rgba(99,102,241,0.04);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.export-option .export-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.export-option .export-info h4 { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.15rem; }
+.export-option .export-info p { font-size: 0.68rem; color: var(--text-secondary); }
+
+/* AI Status indicator */
+.api-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.api-status.connected { background: var(--success-light); color: #059669; }
+.api-status.disconnected { background: var(--danger-light); color: var(--danger); }
+[data-theme="dark"] .api-status.connected { background: rgba(16,185,129,0.15); }
+[data-theme="dark"] .api-status.disconnected { background: rgba(244,63,94,0.15); }
+.api-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* AI Provider Tabs */
+.ai-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--card-solid);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 1rem;
+}
+.ai-tab {
+  flex: 1;
+  padding: 0.35rem 0.25rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  font-family: inherit;
+  text-align: center;
+}
+.ai-tab:hover { color: var(--text); background: var(--border); }
+.ai-tab.active { background: var(--primary); color: white; box-shadow: 0 2px 6px var(--primary-glow); }
+
+.ai-tab-content { display: none; }
+.ai-tab-content.active { display: block; }
+
+/* Password input */
+.input-password-wrap {
+  position: relative;
+}
+.input-password-wrap input {
+  padding-right: 2.5rem;
+}
+.input-password-wrap .toggle-vis {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+/* Overview Image */
+.overview-section {
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card-solid);
+  position: relative;
+}
+.overview-image-wrap {
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(99,102,241,0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.overview-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.overview-placeholder {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+}
+.overview-placeholder .ov-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(99,102,241,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  font-size: 1.5rem;
+}
+.overview-placeholder h4 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+.overview-placeholder p { font-size: 0.72rem; margin-bottom: 1rem; }
+.overview-actions {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.3rem;
+}
+.overview-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.03em;
+}
+
+/* Clock animation */
+.clock-icon {
+  width: 60px; height: 60px; position: relative; margin-bottom: 0.5rem;
+}
+.clock-face {
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 3px solid var(--primary);
+  position: relative;
+  background: var(--card-solid);
+  box-shadow: 0 0 24px var(--primary-glow);
+}
+.clock-face::before, .clock-face::after {
+  content: ''; position: absolute; background: var(--text-secondary); border-radius: 1px;
+}
+.clock-face::before { width: 1px; height: 4px; top: 4px; left: calc(50% - 0.5px); }
+.clock-face::after { width: 1px; height: 4px; bottom: 4px; left: calc(50% - 0.5px); }
+.clock-hand-m {
+  position: absolute; left: calc(50% - 1px); top: 8px;
+  width: 2px; height: 22px;
+  background: var(--primary); border-radius: 1px;
+  transform-origin: center 22px;
+  animation: clockSpin 2s linear infinite;
+}
+.clock-hand-h {
+  position: absolute; left: calc(50% - 1.5px); top: 13px;
+  width: 3px; height: 17px;
+  background: var(--text); border-radius: 1.5px;
+  transform-origin: center 17px;
+  animation: clockSpin 24s linear infinite;
+}
+.clock-dot {
+  position: absolute; top: 50%; left: 50%;
+  width: 6px; height: 6px; margin: -3px;
+  background: var(--primary); border-radius: 50%;
+  z-index: 1;
+}
+@keyframes clockSpin { to { transform: rotate(360deg); } }
+
+/* Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--border-solid);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.generating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  gap: 0.75rem;
+  z-index: 5;
+  border-radius: var(--radius);
+}
+.generating-overlay .spinner {
+  width: 32px;
+  height: 32px;
+  border-color: rgba(255,255,255,0.3);
+  border-top-color: white;
+}
+.generating-overlay p { font-size: 0.76rem; font-weight: 600; }
+
+/* Overview settings in sidebar */
+.overview-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+.overview-settings-row select {
+  flex: 1;
+}
+
+/* Range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--border-solid);
+  border-radius: 3px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 1px 4px var(--primary-glow);
+  transition: all var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* Minimap */
+.timeline-minimap { position: fixed; right: 12px; top: 50%; transform: translateY(-50%); width: 6px; max-height: 60vh; z-index: 90; display: flex; flex-direction: column; gap: 3px; opacity: 0.5; transition: opacity 0.3s; }
+.timeline-minimap:hover { opacity: 1; }
+.minimap-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-light); cursor: pointer; transition: all 0.2s; position: relative; }
+.minimap-dot:hover { transform: scale(2); background: var(--primary); }
+.minimap-dot:hover::after { content: attr(data-label); position: absolute; right: 14px; top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: 0.6rem; background: var(--card-solid); color: var(--text); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+
+/* Lightbox */
+.lightbox-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.lightbox-overlay.active { opacity: 1; pointer-events: all; }
+.lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+.lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+.lightbox-prev { left: 1rem; }
+.lightbox-next { right: 1rem; }
+.lightbox-close { position: absolute; top: 1rem; right: 1rem; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+.lightbox-counter { position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.75rem; }
+
+/* Cover Image */
+.timeline-cover { position: relative; width: 100%; height: 180px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; margin-bottom: -1rem; }
+.timeline-cover img { width: 100%; height: 100%; object-fit: cover; }
+.timeline-cover-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--card) 100%); }
+.timeline-cover-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center; }
+
+/* Importance Stars */
+.importance-stars { display: inline-flex; gap: 2px; margin-left: 0.5rem; }
+.importance-stars .star { color: var(--accent); font-size: 0.65rem; }
+.timeline-event.importance-3 .timeline-card { border-left: 4px solid var(--accent); }
+.timeline-event.importance-3 .timeline-dot { box-shadow: 0 0 0 3px var(--accent), 0 0 12px rgba(245,158,11,0.4) !important; }
+
+/* Search Bar */
+.search-bar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+.search-bar input { flex: 1; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.75rem; outline: none; transition: border-color 0.2s; }
+.search-bar input:focus { border-color: var(--primary); }
+.search-bar select { padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.72rem; }
+.timeline-event.search-hidden { display: none; }
+.timeline-event .search-highlight { background: rgba(245,158,11,0.3); border-radius: 2px; padding: 0 2px; }
+
+/* Image Dropzone */
+.image-dropzone { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 0.72rem; color: var(--text-secondary); }
+.image-dropzone:hover, .image-dropzone.drag-over { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+.image-dropzone.has-image { border-style: solid; border-color: var(--success); }
+
+@media (max-width: 960px) {
+  .timeline-minimap { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-logo">T</div>
+      <h1>Timeline Studio <span>Dashboard</span></h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openAddEvent()">+ 이벤트 추가</button>
+      <button class="btn btn-secondary" onclick="aiGenerateTimeline()">AI 생성</button>
+      <button class="btn btn-secondary" onclick="autoGenerate()">샘플 생성</button>
+      <button class="btn btn-secondary" onclick="exportTimeline()">내보내기</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">가져오기</button>
+      <input type="file" id="importFile" accept=".json,.html" style="display:none" onchange="importTimeline(event)">
+      <button class="btn btn-secondary" onclick="openDesignPanel()">디자인</button>
+      <button class="btn btn-icon btn-secondary" id="undoBtn" onclick="undo()" title="실행 취소 (Ctrl+Z)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 0 10H9"/><path d="M3 10l4-4M3 10l4 4"/></svg>
+      </button>
+      <button class="btn btn-icon btn-secondary" id="redoBtn" onclick="redo()" title="다시 실행 (Ctrl+Y)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10H11a5 5 0 0 0 0 10h4"/><path d="M21 10l-4-4M21 10l-4 4"/></svg>
+      </button>
+      <button class="btn btn-secondary" onclick="resetAll()" style="color:#f59e0b;">초기화</button>
+      <button class="btn btn-icon btn-secondary" onclick="toggleTheme()" title="테마 전환" id="themeBtn">
+        <svg id="themeSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg id="themeMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <aside class="sidebar">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon-badge" style="background:rgba(99,102,241,0.1);color:var(--primary);">T</span>
+        주제 설정
+      </div>
+      <div class="form-group">
+        <label>타임라인 제목</label>
+        <input type="text" id="timelineTitle" placeholder="예: 한국 근현대사 타임라인" oninput="updatePreviewTitle()">
+      </div>
+      <div class="form-group">
+        <label>설명</label>
+        <textarea id="timelineDesc" rows="2" placeholder="타임라인에 대한 간단한 설명" oninput="updatePreviewTitle()"></textarea>
+      </div>
+      <div class="form-group">
+        <label>참고 파일 첨부</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="refFiles" multiple onchange="handleFileAttach(event)">
+          <div class="file-icon">+</div>
+          <span>클릭하여 파일을 첨부하세요</span>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="icon-badge" style="background:rgba(245,158,11,0.1);color:var(--accent);">S</span>
+        이벤트 설정
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>이벤트 수</label>
+          <input type="number" id="eventCount" min="1" max="100" value="5">
+        </div>
+        <div class="form-group">
+          <label>텍스트 길이</label>
+          <select id="textLength">
+            <option value="short">하 (1-2문장)</option>
+            <option value="medium" selected>중 (3-4문장)</option>
+            <option value="long">상 (5문장 이상)</option>
+          </select>
+        </div>
+      </div>
+      <div class="toggle-group">
+        <label>이미지 자동 추가</label>
+        <button class="toggle" id="toggleImage" onclick="toggleBtn(this)"></button>
+      </div>
+      <div class="toggle-group">
+        <label>YouTube 자동 추가</label>
+        <button class="toggle" id="toggleYoutube" onclick="toggleBtn(this)"></button>
+      </div>
+      <div class="toggle-group">
+        <label>이모지 추가</label>
+        <button class="toggle active" id="toggleEmoji" onclick="toggleBtn(this)"></button>
+      </div>
+      <div class="form-group" style="margin-top:0.5rem;">
+        <label>생성 언어</label>
+        <select id="genLanguage">
+          <option value="ko" selected>한국어</option>
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- AI Settings -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;">AI</span>
+        AI 설정
+      </div>
+      <div class="ai-tabs">
+        <button class="ai-tab active" onclick="switchAiTab('chatgpt',this)">ChatGPT</button>
+        <button class="ai-tab" onclick="switchAiTab('gemini',this)">Gemini</button>
+        <button class="ai-tab" onclick="switchAiTab('claude',this)">Claude</button>
+      </div>
+      <div class="ai-tab-content active" id="aiTab-chatgpt">
+        <div class="form-group">
+          <label>OpenAI API Key</label>
+          <div class="input-password-wrap">
+            <input type="password" id="apiKey-chatgpt" placeholder="sk-..." oninput="saveApiKeys()">
+            <button class="toggle-vis" onclick="toggleVis(this)">show</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>모델</label>
+          <select id="aiModel-chatgpt" onchange="saveApiKeys()">
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+            <option value="gpt-4.1">GPT-4.1</option>
+            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="api-status disconnected" id="status-chatgpt"><span class="api-status-dot"></span> 미연결</span>
+          <button class="btn btn-sm btn-outline" onclick="testApiKey('chatgpt')">연결 테스트</button>
+        </div>
+      </div>
+      <div class="ai-tab-content" id="aiTab-gemini">
+        <div class="form-group">
+          <label>Google Gemini API Key</label>
+          <div class="input-password-wrap">
+            <input type="password" id="apiKey-gemini" placeholder="AIza..." oninput="saveApiKeys()">
+            <button class="toggle-vis" onclick="toggleVis(this)">show</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>모델</label>
+          <select id="aiModel-gemini" onchange="saveApiKeys()">
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="api-status disconnected" id="status-gemini"><span class="api-status-dot"></span> 미연결</span>
+          <button class="btn btn-sm btn-outline" onclick="testApiKey('gemini')">연결 테스트</button>
+        </div>
+      </div>
+      <div class="ai-tab-content" id="aiTab-claude">
+        <div class="form-group">
+          <label>Anthropic API Key</label>
+          <div class="input-password-wrap">
+            <input type="password" id="apiKey-claude" placeholder="sk-ant-..." oninput="saveApiKeys()">
+            <button class="toggle-vis" onclick="toggleVis(this)">show</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>모델</label>
+          <select id="aiModel-claude" onchange="saveApiKeys()">
+            <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+            <option value="claude-opus-4-6">Claude Opus 4.6</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="api-status disconnected" id="status-claude"><span class="api-status-dot"></span> 미연결</span>
+          <button class="btn btn-sm btn-outline" onclick="testApiKey('claude')">연결 테스트</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="icon-badge" style="background:rgba(16,185,129,0.1);color:var(--success);">#</span>
+        현황
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-primary">
+          <div class="stat-value" id="statEvents">0</div>
+          <div class="stat-label">이벤트</div>
+        </div>
+        <div class="stat-card stat-accent">
+          <div class="stat-value" id="statMedia">0</div>
+          <div class="stat-label">미디어</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="timeline-preview card" id="previewSection">
+    <div class="preview-header" style="flex-direction:column;align-items:center;text-align:center;">
+      <div class="preview-header-left" style="text-align:center;">
+        <h2 id="previewTitle" style="background:linear-gradient(135deg, var(--text), var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">타임라인 미리보기</h2>
+        <p id="previewDesc" style="margin-top:0.25rem;"></p>
+        <p id="previewDate" style="font-size:0.65rem;color:var(--text-secondary);margin-top:0.35rem;"></p>
+      </div>
+      <div class="layout-switcher" style="margin-top:0.75rem;">
+        <button class="layout-btn active" onclick="setLayout('default',this)" title="기본">기본</button>
+        <button class="layout-btn" onclick="setLayout('alternate',this)" title="교차">교차</button>
+        <button class="layout-btn" onclick="setLayout('centered',this)" title="중앙">중앙</button>
+      </div>
+    </div>
+    <div class="search-bar" id="searchBar">
+      <input type="text" id="searchInput" placeholder="이벤트 검색..." oninput="filterEvents()">
+      <select id="searchFilter" onchange="filterEvents()">
+        <option value="all">전체</option>
+        <option value="title">제목</option>
+        <option value="tag">태그</option>
+        <option value="date">날짜</option>
+      </select>
+    </div>
+    <div id="coverImageArea"></div>
+    <div class="timeline-container" id="timelineContainer">
+      <div class="timeline-line"></div>
+      <div id="eventsWrapper">
+        <div class="empty-state">
+          <div class="empty-icon">T</div>
+          <h3>타임라인을 시작하세요</h3>
+          <p>이벤트를 추가하거나 자동 생성으로<br>빠르게 타임라인을 만들어보세요</p>
+          <button class="btn btn-success" onclick="openAddEvent()">+ 첫 이벤트 추가</button>
+        </div>
+      </div>
+      <footer class="timeline-footer">
+        <div class="timeline-footer-dot"></div>
+        <div class="timeline-footer-content">
+          <div class="name">박정원 | 朴正元 | Park Jeong Weon 교수</div>
+          <div class="affiliation">한국외국어대학교 중국학대학 중국언어문화학부</div>
+          <div class="footer-links">
+            <a href="https://k-ai.it.kr/" target="_blank">K-AI 교육네트워크</a>
+            <span class="divider">|</span>
+            <a href="mailto:park9626@hanmail.net">park9626@hanmail.net</a>
+          </div>
+          <div class="footer-links">
+            <a href="https://kletter.kr" target="_blank">kletter.kr</a>
+            <span class="divider">|</span>
+            <a href="https://kteacher.kr" target="_blank">kteacher.kr</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">이벤트 추가</h2>
+      <button class="btn btn-icon btn-ghost" onclick="closeModal('eventModal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>날짜</label>
+        <input type="text" id="evDate" placeholder="예: 2024년 3월">
+      </div>
+      <div class="form-group">
+        <label>이모지</label>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span class="emoji-picker-trigger" id="selectedEmoji" onclick="toggleEmojiPicker()">📌</span>
+          <input type="text" id="evEmoji" value="📌" style="width:100%;text-align:center;" oninput="document.getElementById('selectedEmoji').textContent=this.value">
+        </div>
+      </div>
+    </div>
+    <div class="emoji-grid" id="emojiPicker" style="display:none;"></div>
+    <div class="form-group">
+      <label>제목</label>
+      <input type="text" id="evTitle" placeholder="이벤트 제목을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label>내용</label>
+      <textarea id="evBody" rows="3" placeholder="이벤트에 대한 설명을 작성하세요"></textarea>
+    </div>
+    <div class="form-group">
+      <label>색상</label>
+      <div class="color-options" id="colorOptions"></div>
+    </div>
+    <div class="form-group">
+      <label>중요도</label>
+      <select id="evImportance">
+        <option value="0">없음</option>
+        <option value="1">★</option>
+        <option value="2">★★</option>
+        <option value="3">★★★</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이미지</label>
+      <input type="text" id="evImage" placeholder="URL 입력 또는 아래에 이미지를 드래그하세요">
+      <div class="image-dropzone" id="imageDropzone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleImageDrop(event)" onclick="document.getElementById('imageFileInput').click()">
+        📎 이미지를 드래그하거나 클릭하여 업로드
+      </div>
+      <input type="file" id="imageFileInput" accept="image/*" style="display:none" onchange="handleImageFile(this.files[0])">
+    </div>
+    <div class="form-group">
+      <label>YouTube URL</label>
+      <input type="text" id="evYoutube" placeholder="https://youtu.be/...">
+    </div>
+    <div class="form-group">
+      <label>태그 (쉼표 구분)</label>
+      <input type="text" id="evTags" placeholder="역사, 문화, 기술">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('eventModal')">취소</button>
+      <button class="btn btn-success" id="saveEventBtn" onclick="saveEvent()">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Design Modal -->
+<div class="modal-overlay" id="designModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>디자인 설정</h2>
+      <button class="btn btn-icon btn-ghost" onclick="closeModal('designModal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label>타임라인 스타일</label>
+      <select id="designStyle" onchange="applyTimelineStyle(this.value)">
+        <option value="classic">클래식 (기본)</option>
+        <option value="modern">모던 (그라데이션)</option>
+        <option value="neon">네온 (글로우)</option>
+        <option value="minimal">미니멀 (점선)</option>
+        <option value="bold">볼드 (굵은 선)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이벤트 카드 스타일</label>
+      <select id="designCardStyle" onchange="applyCardStyle(this.value)">
+        <option value="glass">글래스모피즘 (기본)</option>
+        <option value="solid">솔리드 (불투명)</option>
+        <option value="outline">아웃라인 (테두리)</option>
+        <option value="gradient">그라데이션</option>
+        <option value="flat">플랫 (그림자 없음)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>레이아웃</label>
+      <select id="designLayout" onchange="setLayout(this.value)">
+        <option value="default">기본 (왼쪽 정렬)</option>
+        <option value="alternate">교차 (좌우 교차)</option>
+        <option value="centered">중앙 정렬</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>기본 색상 테마</label>
+      <div class="color-options" id="themeColorOptions"></div>
+    </div>
+    <div class="form-group">
+      <label>타임라인 라인 굵기</label>
+      <input type="range" min="1" max="8" value="3" id="lineWidth" oninput="updateLineWidth(this.value)">
+    </div>
+    <div class="form-group">
+      <label>이벤트 글자 크기</label>
+      <select id="designFontSize" onchange="updateFontSize(this.value)">
+        <option value="0.82rem">작게</option>
+        <option value="0.92rem" selected>보통</option>
+        <option value="1.08rem">크게</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>카드 모서리</label>
+      <select id="designRadius" onchange="updateRadius(this.value)">
+        <option value="6px">각진</option>
+        <option value="16px" selected>둥근</option>
+        <option value="24px">매우 둥근</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이미지/영상 크기</label>
+      <select id="designMediaSize" onchange="updateMediaSize(this.value)">
+        <option value="none">원본 (제한 없음)</option>
+        <option value="120px">작게 (120px)</option>
+        <option value="200px" selected>보통 (200px)</option>
+        <option value="300px">크게 (300px)</option>
+        <option value="400px">매우 크게 (400px)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이미지/영상 위치</label>
+      <select id="designMediaPos" onchange="updateMediaPosition(this.value)">
+        <option value="bottom" selected>본문 하단 (기본)</option>
+        <option value="top">본문 상단</option>
+        <option value="left">왼쪽 배치</option>
+        <option value="bg">배경 이미지</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>이미지 초점 위치</label>
+      <select id="designMediaFocus" onchange="updateMediaFocus(this.value)">
+        <option value="center" selected>중앙</option>
+        <option value="top">상단</option>
+        <option value="bottom">하단</option>
+        <option value="left">왼쪽</option>
+        <option value="right">오른쪽</option>
+      </select>
+    </div>
+    <div class="toggle-group">
+      <label>카드 그림자</label>
+      <button class="toggle active" id="toggleShadow" onclick="toggleBtn(this); toggleCardShadow()"></button>
+    </div>
+    <div class="toggle-group">
+      <label>원형 아이콘에 연도 표시</label>
+      <button class="toggle active" id="toggleDotYear" onclick="toggleBtn(this); renderTimeline()"></button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('designModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>내보내기</h2>
+      <button class="btn btn-icon btn-ghost" onclick="closeModal('exportModal')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="export-options">
+      <div class="export-option" onclick="exportAsHTML()">
+        <div class="export-icon" style="background:rgba(99,102,241,0.1);color:var(--primary);">H</div>
+        <div class="export-info">
+          <h4>HTML 파일</h4>
+          <p>독립 실행 가능한 HTML 파일로 내보냅니다</p>
+        </div>
+      </div>
+      <div class="export-option" onclick="exportAsJSON()">
+        <div class="export-icon" style="background:rgba(245,158,11,0.1);color:var(--accent);">J</div>
+        <div class="export-info">
+          <h4>JSON 데이터</h4>
+          <p>나중에 가져오기 할 수 있는 데이터 파일</p>
+        </div>
+      </div>
+      <div class="export-option" onclick="exportAsPDF()">
+        <div class="export-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">PDF</div>
+        <div class="export-info">
+          <h4>PDF 파일</h4>
+          <p>고품질 PDF 문서로 내보냅니다</p>
+        </div>
+      </div>
+      <div class="export-option" onclick="exportAsPNG()">
+        <div class="export-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">P</div>
+        <div class="export-info">
+          <h4>PNG 이미지</h4>
+          <p>고해상도 PNG 이미지로 내보냅니다</p>
+        </div>
+      </div>
+      <div class="export-option" onclick="copyHTMLToClipboard()">
+        <div class="export-icon" style="background:rgba(16,185,129,0.1);color:var(--success);">C</div>
+        <div class="export-info">
+          <h4>클립보드 복사</h4>
+          <p>HTML 코드를 클립보드에 복사합니다</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('exportModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <button class="lightbox-nav lightbox-prev" onclick="navLightbox(-1,event)">&#8249;</button>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="" onclick="event.stopPropagation()">
+  <button class="lightbox-nav lightbox-next" onclick="navLightbox(1,event)">&#8250;</button>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<!-- Minimap -->
+<div class="timeline-minimap" id="timelineMinimap"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script>
+const EMOJIS = ['📌','⭐','🔥','💡','🎯','📍','🏆','🎉','📖','🔔','💎','🌟','🚀','📊','🎓','🏛️','⚡','🌍','🎭','🎵','💼','🔬','🏗️','📡','🛡️','🌱','🎪','🏅','📝','🔑','🧪','🎨','📱','💻','🤖','🧠','❤️','✅','⚠️','🔷'];
+const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f59e0b','#10b981','#06b6d4','#3b82f6','#a855f7','#f97316','#14b8a6','#0ea5e9'];
+const THEME_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f59e0b','#10b981','#06b6d4','#3b82f6','#0f172a','#be185d','#0d9488','#d97706'];
+
+let events = [];
+let editingIndex = -1;
+let attachedFiles = [];
+let currentLayout = 'default';
+
+/* Undo/Redo */
+const undoStack = [];
+const redoStack = [];
+const MAX_UNDO = 50;
+function pushUndo() {
+  undoStack.push(JSON.stringify(events));
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack.length = 0;
+  updateUndoButtons();
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(JSON.stringify(events));
+  events = JSON.parse(undoStack.pop());
+  renderTimeline(); saveToStorage(); updateUndoButtons();
+  showToast('실행 취소', 'info');
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(JSON.stringify(events));
+  events = JSON.parse(redoStack.pop());
+  renderTimeline(); saveToStorage(); updateUndoButtons();
+  showToast('다시 실행', 'info');
+}
+function updateUndoButtons() {
+  const ub = document.getElementById('undoBtn');
+  const rb = document.getElementById('redoBtn');
+  if (ub) ub.disabled = !undoStack.length;
+  if (rb) rb.disabled = !redoStack.length;
+}
+
+function init() {
+  renderEmojiPicker();
+  renderColorOptions();
+  renderThemeColors();
+  loadFromStorage();
+  loadApiKeys();
+  updateStats();
+  updatePreviewDate();
+  const saved = localStorage.getItem('tl-theme');
+  applyTheme(saved !== 'light');
+  const savedTlStyle = localStorage.getItem('tl-timeline-style');
+  if (savedTlStyle) { document.getElementById('designStyle').value = savedTlStyle; applyTimelineStyle(savedTlStyle); }
+  const savedCardStyle = localStorage.getItem('tl-card-style');
+  if (savedCardStyle) { document.getElementById('designCardStyle').value = savedCardStyle; applyCardStyle(savedCardStyle); }
+  const savedMediaSize = localStorage.getItem('tl-media-size');
+  if (savedMediaSize) { document.getElementById('designMediaSize').value = savedMediaSize; updateMediaSize(savedMediaSize); }
+  const savedMediaPos = localStorage.getItem('tl-media-pos');
+  if (savedMediaPos) { document.getElementById('designMediaPos').value = savedMediaPos; updateMediaPosition(savedMediaPos); }
+  const savedMediaFocus = localStorage.getItem('tl-media-focus');
+  if (savedMediaFocus) { document.getElementById('designMediaFocus').value = savedMediaFocus; updateMediaFocus(savedMediaFocus); }
+  renderCover();
+  initScrollObserver();
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+  });
+  updateUndoButtons();
+}
+
+function applyTheme(dark) {
+  document.body.setAttribute('data-theme', dark ? 'dark' : '');
+  document.getElementById('themeSun').style.display = dark ? 'block' : 'none';
+  document.getElementById('themeMoon').style.display = dark ? 'none' : 'block';
+}
+
+function renderEmojiPicker() {
+  const grid = document.getElementById('emojiPicker');
+  grid.innerHTML = EMOJIS.map(e => `<span onclick="selectEmoji('${e}')">${e}</span>`).join('');
+}
+
+function renderColorOptions() {
+  const wrap = document.getElementById('colorOptions');
+  wrap.innerHTML = COLORS.map(c => `<div class="color-swatch" style="background:${c}" data-color="${c}" onclick="selectColor(this,'${c}')"></div>`).join('');
+  wrap.children[0].classList.add('active');
+}
+
+function renderThemeColors() {
+  const wrap = document.getElementById('themeColorOptions');
+  wrap.innerHTML = THEME_COLORS.map(c => `<div class="color-swatch" style="background:${c}" onclick="setThemeColor('${c}',this)"></div>`).join('');
+}
+
+function toggleBtn(btn) { btn.classList.toggle('active'); }
+function toggleEmojiPicker() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'none' ? 'grid' : 'none'; }
+function selectEmoji(e) { document.getElementById('evEmoji').value = e; document.getElementById('selectedEmoji').textContent = e; document.getElementById('emojiPicker').style.display = 'none'; }
+function selectColor(el, c) { document.querySelectorAll('#colorOptions .color-swatch').forEach(s=>s.classList.remove('active')); el.classList.add('active'); }
+
+function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+
+function openAddEvent() {
+  editingIndex = -1;
+  document.getElementById('modalTitle').textContent = '이벤트 추가';
+  document.getElementById('evDate').value = '';
+  document.getElementById('evTitle').value = '';
+  document.getElementById('evBody').value = '';
+  document.getElementById('evEmoji').value = '📌';
+  document.getElementById('selectedEmoji').textContent = '📌';
+  document.getElementById('evImage').value = '';
+  document.getElementById('evYoutube').value = '';
+  document.getElementById('evTags').value = '';
+  document.getElementById('evImportance').value = '0';
+  document.getElementById('emojiPicker').style.display = 'none';
+  const dz = document.getElementById('imageDropzone');
+  if (dz) { dz.classList.remove('has-image'); dz.textContent = '🖼️ 이미지를 드래그하거나 클릭하여 업로드'; }
+  document.querySelectorAll('#colorOptions .color-swatch').forEach((s,i) => s.classList.toggle('active', i===0));
+  openModal('eventModal');
+}
+
+function openEditEvent(idx) {
+  editingIndex = idx;
+  const ev = events[idx];
+  document.getElementById('modalTitle').textContent = '이벤트 수정';
+  document.getElementById('evDate').value = ev.date;
+  document.getElementById('evTitle').value = ev.title;
+  document.getElementById('evBody').value = ev.body;
+  document.getElementById('evEmoji').value = ev.emoji || '📌';
+  document.getElementById('selectedEmoji').textContent = ev.emoji || '📌';
+  document.getElementById('evImage').value = ev.image || '';
+  document.getElementById('evYoutube').value = ev.youtube || '';
+  document.getElementById('evTags').value = (ev.tags || []).join(', ');
+  document.getElementById('evImportance').value = ev.importance || '0';
+  document.getElementById('emojiPicker').style.display = 'none';
+  const dz = document.getElementById('imageDropzone');
+  if (dz) {
+    if (ev.image) { dz.classList.add('has-image'); dz.textContent = '✅ 이미지 설정됨'; }
+    else { dz.classList.remove('has-image'); dz.textContent = '🖼️ 이미지를 드래그하거나 클릭하여 업로드'; }
+  }
+  document.querySelectorAll('#colorOptions .color-swatch').forEach(s => {
+    s.classList.toggle('active', s.dataset.color === (ev.color || COLORS[0]));
+  });
+  openModal('eventModal');
+}
+
+function saveEvent() {
+  const date = document.getElementById('evDate').value.trim();
+  const title = document.getElementById('evTitle').value.trim();
+  const body = document.getElementById('evBody').value.trim();
+  const emoji = document.getElementById('evEmoji').value.trim();
+  const image = document.getElementById('evImage').value.trim();
+  const youtube = document.getElementById('evYoutube').value.trim();
+  const tags = document.getElementById('evTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const importance = parseInt(document.getElementById('evImportance').value) || 0;
+  const activeColor = document.querySelector('#colorOptions .color-swatch.active');
+  const color = activeColor ? activeColor.dataset.color : COLORS[0];
+
+  if (!title) { showToast('제목을 입력해주세요.', 'warn'); return; }
+
+  pushUndo();
+  const ev = { date, title, body, emoji, color, image, youtube, tags, importance };
+
+  if (editingIndex >= 0) {
+    events[editingIndex] = ev;
+    showToast('이벤트가 수정되었습니다.', 'success');
+  } else {
+    events.push(ev);
+    showToast('이벤트가 추가되었습니다.', 'success');
+  }
+
+  closeModal('eventModal');
+  renderTimeline();
+  saveToStorage();
+}
+
+function deleteEvent(idx) {
+  if (!confirm('이 이벤트를 삭제하시겠습니까?')) return;
+  pushUndo();
+  events.splice(idx, 1);
+  renderTimeline();
+  saveToStorage();
+  showToast('이벤트가 삭제되었습니다.', 'info');
+}
+
+function moveEvent(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= events.length) return;
+  pushUndo();
+  [events[idx], events[newIdx]] = [events[newIdx], events[idx]];
+  renderTimeline();
+  saveToStorage();
+}
+
+function getYoutubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?\s]+)/);
+  return m ? m[1] : null;
+}
+
+function renderTimeline() {
+  const wrapper = document.getElementById('eventsWrapper');
+  const showEmoji = document.getElementById('toggleEmoji').classList.contains('active');
+  const showDotYear = document.getElementById('toggleDotYear').classList.contains('active');
+
+  if (events.length === 0) {
+    wrapper.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">T</div>
+      <h3>타임라인을 시작하세요</h3>
+      <p>이벤트를 추가하거나 자동 생성으로<br>빠르게 타임라인을 만들어보세요</p>
+      <button class="btn btn-success" onclick="openAddEvent()">+ 첫 이벤트 추가</button>
+    </div>`;
+    updateStats();
+    return;
+  }
+
+  wrapper.innerHTML = events.map((ev, i) => {
+    const ytId = getYoutubeId(ev.youtube);
+    let media = '';
+    if (ev.image) media += `<div class="timeline-card-media"><img src="${escHTML(ev.image)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openLightbox('${escHTML(ev.image)}')" style="cursor:zoom-in"></div>`;
+    if (ytId) media += `<div class="timeline-card-media"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen loading="lazy"></iframe></div>`;
+    const tagsHtml = (ev.tags || []).map(t => `<span class="tag">${escHTML(t)}</span>`).join('');
+    const yearMatch = ev.date ? ev.date.match(/(\d{2,4})/) : null;
+    const yearLabel = yearMatch ? yearMatch[1] : '';
+    const dotContent = showDotYear && yearLabel
+      ? `<span class="dot-year">${escHTML(yearLabel)}</span>`
+      : (showEmoji && ev.emoji ? `<span class="dot-emoji">${ev.emoji}</span>` : '');
+    const emojiTitle = showEmoji && ev.emoji ? ev.emoji + ' ' : '';
+
+    const impClass = ev.importance ? ` importance-${ev.importance}` : '';
+    const impStars = getImportanceStars(ev.importance);
+
+    return `<div class="timeline-event${impClass}" draggable="true" ondragstart="dragStart(event,${i})" ondragover="dragOver(event)" ondrop="drop(event,${i})" ondragend="dragEnd(event)">
+      <div class="timeline-dot" style="background:${ev.color};box-shadow:0 0 0 2px ${ev.color}, 0 2px 8px ${ev.color}33;">${dotContent}</div>
+      ${ev.date ? `<div class="timeline-date">${escHTML(ev.date)}</div>` : ''}
+      <div class="timeline-card" style="--card-color:${ev.color};">
+        <div class="timeline-card-actions">
+          <button class="btn btn-sm btn-ghost btn-icon" onclick="moveEvent(${i},-1)" title="위로">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+          </button>
+          <button class="btn btn-sm btn-ghost btn-icon" onclick="moveEvent(${i},1)" title="아래로">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button class="btn btn-sm btn-ghost btn-icon" onclick="openEditEvent(${i})" title="수정">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-sm btn-ghost btn-icon" onclick="duplicateEvent(${i})" title="복제">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+          <button class="btn btn-sm btn-ghost btn-icon" onclick="deleteEvent(${i})" title="삭제" style="color:var(--danger);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+        <div class="timeline-card-title">${emojiTitle}${escHTML(ev.title)}${impStars}</div>
+        ${ev.body ? `<div class="timeline-card-body">${escHTML(ev.body).replace(/\n/g,'<br>')}</div>` : ''}
+        ${media}
+        ${tagsHtml ? `<div class="timeline-card-tags">${tagsHtml}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.timeline-card').forEach(card => {
+    const color = card.style.getPropertyValue('--card-color');
+    if (color) card.querySelector('.timeline-card-title').style.color = '';
+    const before = card.style;
+  });
+
+  updateStats();
+  initScrollObserver();
+  renderMinimap();
+}
+
+let scrollObserver = null;
+function initScrollObserver() {
+  if (scrollObserver) scrollObserver.disconnect();
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const delay = Array.from(entry.target.parentElement.children).indexOf(entry.target) * 60;
+        setTimeout(() => entry.target.classList.add('tl-visible'), Math.min(delay, 300));
+        scrollObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.timeline-event, .timeline-footer').forEach(el => scrollObserver.observe(el));
+}
+
+function escHTML(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* Drag & Drop */
+let dragIdx = null;
+function dragStart(e, idx) { dragIdx = idx; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function drop(e, idx) { e.preventDefault(); if (dragIdx === null || dragIdx === idx) return; pushUndo(); const item = events.splice(dragIdx, 1)[0]; events.splice(idx, 0, item); dragIdx = null; renderTimeline(); saveToStorage(); }
+function dragEnd(e) { e.currentTarget.classList.remove('dragging'); dragIdx = null; }
+
+/* Layout */
+function setLayout(layout, btn) {
+  currentLayout = layout;
+  const c = document.getElementById('timelineContainer');
+  c.className = 'timeline-container' + (layout !== 'default' ? ' layout-' + layout : '');
+  document.getElementById('designLayout').value = layout;
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const btns = document.querySelectorAll('.layout-btn');
+    btns.forEach(b => { if (b.textContent.trim() === ({default:'기본',alternate:'교차',centered:'중앙'})[layout]) b.classList.add('active'); });
+  }
+}
+
+/* Design */
+function openDesignPanel() { openModal('designModal'); }
+function setThemeColor(c, el) {
+  document.documentElement.style.setProperty('--primary', c);
+  document.documentElement.style.setProperty('--primary-light', c + '88');
+  document.documentElement.style.setProperty('--timeline-dot', c);
+  document.documentElement.style.setProperty('--primary-glow', c + '40');
+  document.querySelectorAll('#themeColorOptions .color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+function applyTimelineStyle(style) {
+  const container = document.getElementById('timelineContainer');
+  container.className = container.className.replace(/timeline-style-\S+/g, '').trim();
+  if (style !== 'classic') container.classList.add('timeline-style-' + style);
+  localStorage.setItem('tl-timeline-style', style);
+}
+function applyCardStyle(style) {
+  const container = document.getElementById('timelineContainer');
+  container.className = container.className.replace(/card-style-\S+/g, '').trim();
+  if (style !== 'glass') container.classList.add('card-style-' + style);
+  localStorage.setItem('tl-card-style', style);
+}
+function updateMediaSize(v) {
+  document.documentElement.style.setProperty('--media-max-height', v);
+  localStorage.setItem('tl-media-size', v);
+}
+function updateMediaPosition(v) {
+  const container = document.getElementById('timelineContainer');
+  container.className = container.className.replace(/media-pos-\S+/g, '').trim();
+  if (v !== 'bottom') container.classList.add('media-pos-' + v);
+  localStorage.setItem('tl-media-pos', v);
+}
+function updateMediaFocus(v) {
+  document.documentElement.style.setProperty('--media-position', v);
+  localStorage.setItem('tl-media-focus', v);
+}
+function updateLineWidth(v) { document.querySelector('.timeline-line').style.width = v + 'px'; }
+function updateFontSize(v) { document.documentElement.style.setProperty('--font-size-event', v); }
+function updateRadius(v) { document.documentElement.style.setProperty('--radius', v); }
+function toggleCardShadow() {
+  const on = document.getElementById('toggleShadow').classList.contains('active');
+  document.querySelectorAll('.timeline-card').forEach(c => c.style.boxShadow = on ? '' : 'none');
+}
+
+/* Theme */
+function toggleTheme() {
+  const dark = document.body.getAttribute('data-theme') === 'dark';
+  applyTheme(!dark);
+  localStorage.setItem('tl-theme', dark ? 'light' : 'dark');
+}
+
+function resetAll() {
+  if (!confirm('모든 이벤트와 설정을 초기화하시겠습니까?')) return;
+  pushUndo();
+  events.length = 0;
+  document.getElementById('timelineTitle').value = '';
+  document.getElementById('timelineDesc').value = '';
+  attachedFiles.length = 0;
+  renderFileList();
+  renderTimeline();
+  saveToStorage();
+  showToast('초기화되었습니다.', 'info');
+}
+
+/* Auto Generate */
+const usedImageUrls = new Set();
+function resetUsedImages() { usedImageUrls.clear(); }
+
+async function searchImage(query) {
+  const keywords = query.replace(/[년월일\-]/g, ' ').trim();
+  const candidates = [];
+
+  // 1) Wikipedia 한국어
+  try {
+    const r = await fetch(`https://ko.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keywords)}&gsrlimit=8&prop=pageimages&format=json&pithumbsize=800&origin=*`);
+    const d = await r.json();
+    for (const p of Object.values(d.query?.pages || {})) {
+      if (p.thumbnail?.source) candidates.push(p.thumbnail.source);
+    }
+  } catch(_) {}
+
+  // 2) Wikipedia 영어
+  try {
+    const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keywords)}&gsrlimit=8&prop=pageimages&format=json&pithumbsize=800&origin=*`);
+    const d = await r.json();
+    for (const p of Object.values(d.query?.pages || {})) {
+      if (p.thumbnail?.source) candidates.push(p.thumbnail.source);
+    }
+  } catch(_) {}
+
+  // 3) Wikimedia Commons
+  try {
+    const r = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keywords)}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`);
+    const d = await r.json();
+    for (const p of Object.values(d.query?.pages || {})) {
+      if (p.imageinfo?.[0]?.thumburl) candidates.push(p.imageinfo[0].thumburl);
+    }
+  } catch(_) {}
+
+  for (const url of candidates) {
+    if (!usedImageUrls.has(url)) {
+      usedImageUrls.add(url);
+      return url;
+    }
+  }
+  return candidates[0] || '';
+}
+
+async function autoGenerate() {
+  const count = parseInt(document.getElementById('eventCount').value) || 5;
+  const len = document.getElementById('textLength').value;
+  const addImg = document.getElementById('toggleImage').classList.contains('active');
+  const addYt = document.getElementById('toggleYoutube').classList.contains('active');
+  const addEmoji = document.getElementById('toggleEmoji').classList.contains('active');
+  const title = document.getElementById('timelineTitle').value.trim() || '타임라인';
+
+  const sampleYt = [
+    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+  ];
+  const bodies = {
+    short: ['주요 사건이 발생했습니다.','중요한 변화가 있었습니다.','새로운 시대가 열렸습니다.','역사적 전환점이 되었습니다.','큰 발전이 이루어졌습니다.'],
+    medium: ['이 시기에 중요한 사건이 발생하여 이후 역사의 흐름을 바꾸는 계기가 되었습니다. 당시 사회적 상황과 맞물려 큰 변화를 이끌었습니다.','새로운 기술과 사상이 도입되면서 사회 전반에 걸쳐 혁신적인 변화가 나타났습니다. 이는 후대에도 큰 영향을 미쳤습니다.','이 사건은 국내외적으로 큰 반향을 일으켰으며, 관련 분야의 발전에 크게 기여했습니다. 많은 전문가들이 이를 중요한 전환점으로 평가합니다.'],
+    long: ['이 시기는 역사적으로 매우 중요한 의미를 가집니다. 당시의 정치적, 사회적, 경제적 상황이 복합적으로 작용하여 이 사건이 발생했습니다. 이후 관련 분야에서 수많은 변화가 일어났으며, 그 영향은 오늘날까지 이어지고 있습니다. 전문가들은 이 사건을 분석하며 다양한 시각을 제시하고 있습니다. 이를 통해 우리는 과거를 이해하고 미래를 준비할 수 있는 교훈을 얻습니다.'],
+  };
+
+  resetUsedImages();
+  if (addImg) {
+    const wrapper = document.getElementById('eventsWrapper');
+    wrapper.innerHTML = `<div class="generating-overlay" style="position:relative;min-height:300px;border-radius:var(--radius);background:var(--card);">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;">
+        <div class="clock-icon"><div class="clock-face"><div class="clock-hand-m"></div><div class="clock-hand-h"></div><div class="clock-dot"></div></div></div>
+        <p style="font-size:0.85rem;font-weight:600;color:var(--text);">타임라인을 생성 중입니다...</p>
+        <p style="font-size:0.68rem;color:var(--text-secondary);">이미지를 검색하고 있습니다</p>
+      </div>
+    </div>`;
+  }
+
+  const baseItems = [];
+  for (let i = 0; i < count; i++) {
+    const year = 2000 + Math.floor(i * (24 / count));
+    baseItems.push({ year, evTitle: `${title} - 이벤트 ${events.length + i + 1}`, idx: i });
+  }
+
+  const imgUrls = addImg
+    ? await Promise.allSettled(baseItems.map(b => searchImage(title + ' ' + b.year))).then(r => r.map(x => x.status === 'fulfilled' ? x.value : ''))
+    : baseItems.map(() => '');
+
+  pushUndo();
+  for (let i = 0; i < count; i++) {
+    events.push({
+      date: `${baseItems[i].year}년`,
+      title: baseItems[i].evTitle,
+      body: bodies[len][i % bodies[len].length],
+      emoji: addEmoji ? EMOJIS[i % EMOJIS.length] : '',
+      color: COLORS[i % COLORS.length],
+      image: imgUrls[i],
+      youtube: addYt && i % 3 === 0 ? sampleYt[i % sampleYt.length] : '',
+      tags: ['자동생성'],
+    });
+  }
+
+  renderTimeline();
+  saveToStorage();
+  showToast(`${count}개의 이벤트가 생성되었습니다.`, 'success');
+}
+
+/* File Attach */
+function handleFileAttach(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(f => attachedFiles.push(f.name));
+  renderFileList();
+}
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  list.innerHTML = attachedFiles.map((f, i) => `<div class="file-item"><span>${escHTML(f)}</span><button class="btn btn-sm btn-icon btn-ghost" onclick="removeFile(${i})" style="color:var(--danger);">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button></div>`).join('');
+}
+function removeFile(i) { attachedFiles.splice(i, 1); renderFileList(); }
+
+/* Export */
+function getExportFilename(ext) {
+  const t = (document.getElementById('timelineTitle').value || '타임라인').replace(/[\\/:*?"<>|]/g, '');
+  const now = new Date();
+  const dt = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  return `${t}_${dt}.${ext}`;
+}
+function exportTimeline() { openModal('exportModal'); }
+
+function exportAsJSON() {
+  const data = { title: document.getElementById('timelineTitle').value, description: document.getElementById('timelineDesc').value, events, layout: currentLayout, exportDate: new Date().toISOString() };
+  downloadFile(JSON.stringify(data, null, 2), getExportFilename('json'), 'application/json');
+  showToast('JSON 파일이 다운로드되었습니다.', 'success');
+  closeModal('exportModal');
+}
+
+function exportAsHTML() {
+  const title = document.getElementById('timelineTitle').value || '타임라인';
+  const desc = document.getElementById('timelineDesc').value || '';
+  const showEmoji = document.getElementById('toggleEmoji').classList.contains('active');
+  const showDotYear = document.getElementById('toggleDotYear').classList.contains('active');
+  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#6366f1';
+  const tlStyle = document.getElementById('designStyle').value;
+  const cardStyle = document.getElementById('designCardStyle').value;
+  const fontSize = document.getElementById('designFontSize').value;
+  const radius = document.getElementById('designRadius').value;
+  const lineWidth = document.getElementById('lineWidth').value + 'px';
+  const hasShadow = document.getElementById('toggleShadow').classList.contains('active');
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+  const mediaSize = document.getElementById('designMediaSize').value;
+  const mediaPos = document.getElementById('designMediaPos').value;
+  const mediaFocus = document.getElementById('designMediaFocus').value;
+
+  const lineStyleMap = {
+    classic: `width:${lineWidth}; background:linear-gradient(to bottom,${primaryColor}66,${primaryColor},${primaryColor}66);`,
+    modern: `width:4px; background:linear-gradient(180deg,#6366f1 0%,#a855f7 30%,#ec4899 60%,#f59e0b 100%);`,
+    neon: `width:3px; background:${primaryColor}; box-shadow:0 0 8px ${primaryColor},0 0 20px rgba(99,102,241,0.3);`,
+    minimal: `width:2px; background:repeating-linear-gradient(to bottom,${primaryColor} 0,${primaryColor} 8px,transparent 8px,transparent 16px);`,
+    bold: `width:6px; background:${primaryColor}; border-radius:3px;`,
+  };
+  const dotSizeMap = { classic: 24, modern: 24, neon: 24, minimal: 20, bold: 32 };
+  const dotSize = dotSizeMap[tlStyle] || 24;
+  const dotFontSize = tlStyle === 'bold' ? '0.65rem' : tlStyle === 'minimal' ? '0.45rem' : '0.55rem';
+
+  const cardBg = isDark ? 'rgba(30,33,58,0.75)' : 'rgba(255,255,255,0.85)';
+  const cardSolid = isDark ? '#1e213a' : '#ffffff';
+  const borderSolid = isDark ? '#2a2d4a' : '#e0e2ee';
+  const cardStyleMap = {
+    glass: `background:${cardBg}; backdrop-filter:blur(16px); border:1px solid ${primaryColor}1a; box-shadow:0 2px 8px ${primaryColor}0f;`,
+    solid: `background:${cardSolid}; border:1px solid ${borderSolid};${hasShadow ? '' : ' box-shadow:none;'}`,
+    outline: `background:transparent; border:2px solid ${primaryColor}; box-shadow:none;`,
+    gradient: `background:linear-gradient(135deg,${cardSolid} 0%,${primaryColor}${isDark ? '26' : '14'} 100%); border:1px solid ${primaryColor}22;`,
+    flat: `background:${cardSolid}; border:none; box-shadow:none;`,
+  };
+
+  let html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escHTML(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --primary: ${primaryColor}; --bg: ${isDark ? '#0c0e1a' : '#f0f2f8'}; --card: ${isDark ? cardBg : '#ffffff'}; --text: ${isDark ? '#e8eaf6' : '#1a1a2e'}; --text-secondary: ${isDark ? '#8b8fb0' : '#6b7194'}; --border: ${isDark ? '#2a2d4a' : '#e0e2ee'}; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter','Noto Sans KR',sans-serif; background: ${isDark ? 'linear-gradient(135deg,#0c0e1a,#131529,#0f1124)' : 'linear-gradient(135deg,#e8eaf6,#f0f2f8,#e8f0fe)'}; background-attachment: fixed; color: var(--text); padding: 2rem; min-height: 100vh; }
+.tl-header { text-align: center; margin-bottom: 3rem; padding: 2rem 0; }
+.tl-header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--text), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.tl-header p { color: var(--text-secondary); margin-top: 0.5rem; font-size: 1rem; }
+.tl-container { position: relative; max-width: 800px; margin: 0 auto; padding: 2rem 0; }
+.tl-line { position: absolute; left: 26px; top: 0; bottom: 0; border-radius: 2px; ${lineStyleMap[tlStyle] || lineStyleMap.classic} }
+.tl-event { position: relative; padding-left: 62px; margin-bottom: 2rem; }
+.tl-dot { position: absolute; left: ${Math.round(27 - dotSize/2)}px; top: 1.1rem; width: ${dotSize}px; height: ${dotSize}px; border-radius: 50%; border: 3px solid var(--bg); z-index: 2; display: flex; align-items: center; justify-content: center; }
+.tl-dot-year { font-size: ${dotFontSize}; font-weight: 800; color: white; line-height: 1; }
+.tl-date { display: inline-block; font-size: 0.72rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; padding: 0.2rem 0.65rem; background: ${primaryColor}14; border-radius: 999px; }
+.tl-card { border-radius: ${radius}; padding: 1.25rem; transition: all 0.25s; ${cardStyleMap[cardStyle] || cardStyleMap.glass} }
+.tl-card:hover { transform: translateX(4px); ${cardStyle !== 'outline' && cardStyle !== 'flat' ? `box-shadow: 0 12px 40px ${primaryColor}26;` : ''} }
+.tl-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+.tl-card p { font-size: ${fontSize}; color: var(--text-secondary); line-height: 1.7; }
+.tl-card img { width: 100%; max-height: ${mediaSize}; object-fit: cover; object-position: ${mediaFocus}; border-radius: 10px; margin-top: 0.85rem; border: 1px solid var(--border); }
+.tl-card iframe { width: 100%; max-height: ${mediaSize === 'none' ? 'none' : mediaSize}; aspect-ratio: 16/9; border: none; border-radius: 10px; margin-top: 0.85rem; }
+${mediaPos === 'top' ? '.tl-card { display: flex; flex-direction: column; } .tl-card img, .tl-card iframe { order: -1; margin-top: 0; margin-bottom: 0.85rem; }' : ''}
+${mediaPos === 'left' ? '.tl-card { display: flex; flex-direction: row; gap: 1rem; align-items: flex-start; } .tl-card img { flex-shrink: 0; width: 40%; margin-top: 0; } .tl-card iframe { flex-shrink: 0; width: 40%; margin-top: 0; }' : ''}
+${mediaPos === 'bg' ? '.tl-card { position: relative; overflow: hidden; } .tl-card img { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; opacity: 0.2; border: none; border-radius: 0; margin: 0; z-index: 0; } .tl-card h3, .tl-card p, .tl-tags { position: relative; z-index: 1; }' : ''}
+.tl-tags { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.65rem; }
+.tl-tag { font-size: 0.7rem; padding: 0.2rem 0.6rem; background: ${primaryColor}14; color: var(--primary); border-radius: 999px; font-weight: 600; border: 1px solid ${primaryColor}1f; }
+.tl-footer { text-align: center; margin-top: 3rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.9; position: relative; }
+.tl-footer::before { content:''; display:block; width:60px; height:3px; background:linear-gradient(90deg,var(--primary),${primaryColor}88); border-radius:2px; margin:0 auto 1.5rem; }
+.tl-footer strong { color: var(--text); font-size: 0.95rem; }
+.tl-footer a { color: var(--primary); text-decoration: none; }
+@media (max-width: 600px) { body { padding: 1rem; } .tl-header h1 { font-size: 1.6rem; } ${mediaPos === 'left' ? '.tl-card { flex-direction: column; } .tl-card img, .tl-card iframe { width: 100%; }' : ''} }
+</style>
+</head>
+<body>
+<div class="tl-header">
+<h1>${escHTML(title)}</h1>
+${desc ? `<p>${escHTML(desc)}</p>` : ''}
+</div>
+<div class="tl-container">
+<div class="tl-line"></div>
+${events.map(ev => {
+  const ytId = getYoutubeId(ev.youtube);
+  const emojiStr = showEmoji && ev.emoji ? ev.emoji + ' ' : '';
+  const yearMatch = ev.date ? ev.date.match(/(\d{2,4})/) : null;
+  const yearLabel = yearMatch ? yearMatch[1] : '';
+  const dotInner = showDotYear && yearLabel ? `<span class="tl-dot-year">${escHTML(yearLabel)}</span>`
+    : (showEmoji && ev.emoji ? ev.emoji : '');
+  return `<div class="tl-event">
+<div class="tl-dot" style="background:${ev.color};box-shadow:0 0 0 2px ${ev.color},0 2px 8px ${ev.color}33;">${dotInner}</div>
+${ev.date ? `<div class="tl-date">${escHTML(ev.date)}</div>` : ''}
+<div class="tl-card">
+<h3>${emojiStr}${escHTML(ev.title)}</h3>
+${ev.body ? `<p>${escHTML(ev.body).replace(/\n/g,'<br>')}</p>` : ''}
+${ev.image ? `<img src="${escHTML(ev.image)}" alt="" loading="lazy">` : ''}
+${ytId ? `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen loading="lazy"></iframe>` : ''}
+${(ev.tags||[]).length ? `<div class="tl-tags">${ev.tags.map(t=>`<span class="tl-tag">${escHTML(t)}</span>`).join('')}</div>` : ''}
+</div>
+</div>`;
+}).join('\n')}
+</div>
+<div class="tl-footer">
+<strong>박정원 | 朴正元 | Park Jeong Weon 교수</strong><br>
+한국외국어대학교 중국학대학 중국언어문화학부<br>
+<a href="https://k-ai.it.kr/" target="_blank">K-AI 교육네트워크</a> |
+<a href="mailto:park9626@hanmail.net">park9626@hanmail.net</a> |
+<a href="https://kletter.kr" target="_blank">kletter.kr</a> /
+<a href="https://kteacher.kr" target="_blank">kteacher.kr</a>
+</div>
+</body>
+</html>`;
+
+  downloadFile(html, getExportFilename('html'), 'text/html');
+  showToast('HTML 파일이 다운로드되었습니다.', 'success');
+  closeModal('exportModal');
+}
+
+async function exportAsPNG() {
+  closeModal('exportModal');
+  showToast('PNG 이미지를 생성 중입니다...', 'info');
+  try {
+    const section = document.querySelector('.content');
+    const els = section.querySelectorAll('.timeline-event, .timeline-footer');
+    els.forEach(el => el.classList.add('tl-visible'));
+    const actions = section.querySelectorAll('.timeline-card-actions');
+    actions.forEach(a => a.style.display = 'none');
+    const layoutBtns = section.querySelector('.layout-switcher');
+    if (layoutBtns) layoutBtns.style.display = 'none';
+
+    const canvas = await html2canvas(section, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: getComputedStyle(document.body).backgroundColor,
+      logging: false,
+    });
+
+    actions.forEach(a => a.style.display = '');
+    if (layoutBtns) layoutBtns.style.display = '';
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = getExportFilename('png');
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('PNG 이미지가 다운로드되었습니다.', 'success');
+    }, 'image/png');
+  } catch(e) {
+    showToast('PNG 생성 오류: ' + e.message, 'warn');
+  }
+}
+
+function copyHTMLToClipboard() {
+  const el = document.getElementById('timelineContainer').cloneNode(true);
+  el.querySelectorAll('.timeline-card-actions').forEach(a => a.remove());
+  navigator.clipboard.writeText(el.innerHTML).then(() => {
+    showToast('HTML이 클립보드에 복사되었습니다.', 'success');
+    closeModal('exportModal');
+  });
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* Import */
+function importTimeline(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      if (file.name.endsWith('.json')) {
+        const data = JSON.parse(ev.target.result);
+        if (data.events) {
+          events = data.events;
+          if (data.title) document.getElementById('timelineTitle').value = data.title;
+          if (data.description) document.getElementById('timelineDesc').value = data.description;
+          if (data.layout) setLayout(data.layout);
+          updatePreviewTitle();
+          renderTimeline();
+          saveToStorage();
+          showToast(`${events.length}개의 이벤트를 가져왔습니다.`, 'success');
+        }
+      } else {
+        showToast('JSON 형식을 권장합니다.', 'warn');
+      }
+    } catch (err) {
+      showToast('파일 형식이 올바르지 않습니다.', 'warn');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+/* Preview Title */
+function updatePreviewTitle() {
+  const t = document.getElementById('timelineTitle').value;
+  const d = document.getElementById('timelineDesc').value;
+  document.getElementById('previewTitle').textContent = t || '타임라인 미리보기';
+  document.getElementById('previewDesc').textContent = d || '';
+  updatePreviewDate();
+}
+function updatePreviewDate() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const h = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('previewDate').textContent = `생성일시: ${y}.${m}.${d} ${h}:${min}`;
+}
+
+/* Stats */
+function updateStats() {
+  document.getElementById('statEvents').textContent = events.length;
+  const media = events.filter(e => e.image || e.youtube).length;
+  document.getElementById('statMedia').textContent = media;
+}
+
+/* Storage */
+function saveToStorage() {
+  const data = { events, title: document.getElementById('timelineTitle').value, description: document.getElementById('timelineDesc').value, layout: currentLayout };
+  localStorage.setItem('timeline-dashboard', JSON.stringify(data));
+}
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem('timeline-dashboard');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.events) events = data.events;
+    if (data.title) document.getElementById('timelineTitle').value = data.title;
+    if (data.description) document.getElementById('timelineDesc').value = data.description;
+    if (data.layout) setLayout(data.layout);
+    updatePreviewTitle();
+    renderTimeline();
+  } catch(e) {}
+}
+
+/* Toast */
+function showToast(msg, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  const icons = { success: '✓', warn: '!', info: 'i' };
+  const colors = { success: 'var(--success)', warn: 'var(--accent)', info: 'var(--primary)' };
+  const icon = icons[type] || icons.info;
+  const color = colors[type] || colors.info;
+  toast.innerHTML = `<span style="width:22px;height:22px;border-radius:50%;background:${color};color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;flex-shrink:0;">${icon}</span>${escHTML(msg)}`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(30px)'; toast.style.transition = 'all 0.3s'; setTimeout(() => toast.remove(), 300); }, 2800);
+}
+
+/* ===== AI FUNCTIONS ===== */
+
+function switchAiTab(tab, btn) {
+  document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('aiTab-' + tab).classList.add('active');
+}
+
+function toggleVis(btn) {
+  const input = btn.parentElement.querySelector('input');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'hide'; }
+  else { input.type = 'password'; btn.textContent = 'show'; }
+}
+
+let _saveApiDebounce = null;
+function saveApiKeys() {
+  const keys = {
+    chatgpt: document.getElementById('apiKey-chatgpt').value,
+    gemini: document.getElementById('apiKey-gemini').value,
+    claude: document.getElementById('apiKey-claude').value,
+    image: document.getElementById('apiKey-image').value,
+    'model-chatgpt': document.getElementById('aiModel-chatgpt').value,
+    'model-gemini': document.getElementById('aiModel-gemini').value,
+    'model-claude': document.getElementById('aiModel-claude').value,
+    'model-image': document.getElementById('aiModel-image').value,
+  };
+  localStorage.setItem('tl-api-keys', JSON.stringify(keys));
+  clearTimeout(_saveApiDebounce);
+  _saveApiDebounce = setTimeout(() => showToast('API 설정이 저장되었습니다.', 'success'), 800);
+}
+
+function loadApiKeys() {
+  try {
+    const raw = localStorage.getItem('tl-api-keys');
+    if (!raw) return;
+    const keys = JSON.parse(raw);
+    if (keys.chatgpt) document.getElementById('apiKey-chatgpt').value = keys.chatgpt;
+    if (keys.gemini) document.getElementById('apiKey-gemini').value = keys.gemini;
+    if (keys.claude) document.getElementById('apiKey-claude').value = keys.claude;
+    if (keys.image) document.getElementById('apiKey-image').value = keys.image;
+    if (keys['model-chatgpt']) document.getElementById('aiModel-chatgpt').value = keys['model-chatgpt'];
+    if (keys['model-gemini']) document.getElementById('aiModel-gemini').value = keys['model-gemini'];
+    if (keys['model-claude']) document.getElementById('aiModel-claude').value = keys['model-claude'];
+    if (keys['model-image']) document.getElementById('aiModel-image').value = keys['model-image'];
+  } catch(e) {}
+}
+
+function getActiveProvider() {
+  const tab = document.querySelector('.ai-tab.active');
+  return tab ? tab.textContent.trim().toLowerCase() : 'chatgpt';
+}
+
+function getApiKey(provider) {
+  return document.getElementById('apiKey-' + provider)?.value?.trim() || '';
+}
+
+function getAiModel(provider) {
+  return document.getElementById('aiModel-' + provider)?.value || '';
+}
+
+async function apiProxy(url, method, headers, body) {
+  const r = await fetch('/api/proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, method: method || 'POST', headers: headers || {}, body: body || null })
+  });
+  return r;
+}
+
+async function testApiKey(provider) {
+  const key = getApiKey(provider);
+  if (!key) { showToast('API 키를 입력해주세요.', 'warn'); return; }
+  const statusEl = document.getElementById('status-' + provider);
+  statusEl.className = 'api-status disconnected';
+  statusEl.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;"></span> 테스트 중...';
+
+  try {
+    let r;
+    if (provider === 'chatgpt' || provider === 'image') {
+      r = await apiProxy('https://api.openai.com/v1/models', 'GET', { 'Authorization': 'Bearer ' + key });
+    } else if (provider === 'gemini') {
+      r = await apiProxy('https://generativelanguage.googleapis.com/v1beta/models?key=' + key, 'GET', {});
+    } else if (provider === 'claude') {
+      r = await apiProxy('https://api.anthropic.com/v1/messages', 'POST',
+        { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+        { model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] }
+      );
+    }
+    if (r && r.ok) {
+      statusEl.className = 'api-status connected';
+      statusEl.innerHTML = '<span class="api-status-dot"></span> 연결됨';
+      const label = provider === 'image' ? 'Image API' : provider.toUpperCase();
+      showToast(label + ' 연결 성공', 'success');
+    } else {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d?.error?.message || 'fail');
+    }
+  } catch(e) {
+    statusEl.className = 'api-status disconnected';
+    statusEl.innerHTML = '<span class="api-status-dot"></span> 연결 실패';
+    const label = provider === 'image' ? 'Image API' : provider.toUpperCase();
+    showToast(label + ' 키를 확인해주세요: ' + e.message, 'warn');
+  }
+}
+
+function getActiveAiProvider() {
+  const providers = ['chatgpt', 'gemini', 'claude'];
+  for (const p of providers) {
+    if (getApiKey(p)) return p;
+  }
+  return null;
+}
+
+async function callAiText(prompt) {
+  const provider = getActiveAiProvider();
+  if (!provider) { showToast('AI 설정에서 API 키를 입력해주세요.', 'warn'); return null; }
+  const key = getApiKey(provider);
+  const model = getAiModel(provider);
+
+  try {
+    let d;
+    if (provider === 'chatgpt') {
+      const r = await apiProxy('https://api.openai.com/v1/chat/completions', 'POST',
+        { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+        { model, messages: [{ role: 'user', content: prompt }], temperature: 0.7 }
+      );
+      d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      return d.choices[0].message.content;
+    } else if (provider === 'gemini') {
+      const r = await apiProxy('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, 'POST',
+        { 'Content-Type': 'application/json' },
+        { contents: [{ parts: [{ text: prompt }] }] }
+      );
+      d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      return d.candidates[0].content.parts[0].text;
+    } else if (provider === 'claude') {
+      const r = await apiProxy('https://api.anthropic.com/v1/messages', 'POST',
+        { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+        { model, max_tokens: 4096, messages: [{ role: 'user', content: prompt }] }
+      );
+      d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      return d.content[0].text;
+    }
+  } catch(e) {
+    showToast('AI 호출 오류: ' + e.message, 'warn');
+    return null;
+  }
+}
+
+async function aiGenerateTimeline() {
+  const title = document.getElementById('timelineTitle').value.trim();
+  if (!title) { showToast('타임라인 제목을 먼저 입력해주세요.', 'warn'); return; }
+  if (!getActiveAiProvider()) { showToast('AI 설정에서 API 키를 입력해주세요.', 'warn'); return; }
+
+  const count = parseInt(document.getElementById('eventCount').value) || 5;
+  const lenMap = { short: '1-2문장', medium: '3-4문장', long: '5문장 이상' };
+  const len = lenMap[document.getElementById('textLength').value] || '3-4문장';
+  const addEmoji = document.getElementById('toggleEmoji').classList.contains('active');
+  const desc = document.getElementById('timelineDesc').value.trim();
+
+  const prompt = `당신은 타임라인 콘텐츠 전문가입니다. 다음 주제에 대해 정확히 ${count}개의 타임라인 이벤트를 JSON 배열로 생성해주세요.
+
+주제: ${title}
+${desc ? '설명: ' + desc : ''}
+각 이벤트 설명 길이: ${len}
+이모지 사용: ${addEmoji ? '예' : '아니오'}
+
+반드시 아래 형식의 JSON 배열만 반환하세요. 다른 텍스트 없이 순수 JSON만:
+[
+  {
+    "date": "날짜 (예: 1945년 8월 15일)",
+    "title": "이벤트 제목",
+    "body": "이벤트 설명 (${len})",
+    "emoji": "${addEmoji ? '관련 이모지 1개' : ''}",
+    "tags": ["태그1", "태그2"]
+  }
+]
+
+시간순으로 정렬하고, 각 이벤트는 역사적/사실적으로 정확해야 합니다.
+${getLanguageInstruction()}`;
+
+  resetUsedImages();
+  const wrapper = document.getElementById('eventsWrapper');
+  wrapper.innerHTML = `<div class="generating-overlay" style="position:relative;min-height:300px;border-radius:var(--radius);background:var(--card);">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;">
+      <div class="clock-icon"><div class="clock-face"><div class="clock-hand-m"></div><div class="clock-hand-h"></div><div class="clock-dot"></div></div></div>
+      <p style="font-size:0.85rem;font-weight:600;color:var(--text);" id="genStatusMsg">AI가 타임라인을 생성 중입니다...</p>
+      <p style="font-size:0.68rem;color:var(--text-secondary);">잠시만 기다려주세요</p>
+    </div>
+  </div>`;
+
+  const result = await callAiText(prompt);
+  if (!result) { renderTimeline(); return; }
+
+  try {
+    let jsonStr = result;
+    const match = result.match(/\[[\s\S]*\]/);
+    if (match) jsonStr = match[0];
+    const parsed = JSON.parse(jsonStr);
+
+    if (!Array.isArray(parsed)) throw new Error('Not array');
+
+    const addImg = document.getElementById('toggleImage').classList.contains('active');
+    if (addImg) {
+      const msg = document.getElementById('genStatusMsg');
+      if (msg) msg.textContent = '이벤트 관련 이미지를 검색 중입니다...';
+    }
+
+    const imgUrls = addImg
+      ? await Promise.allSettled(parsed.map(ev => searchImage((ev.title || '') + ' ' + (ev.date || '')))).then(r => r.map(x => x.status === 'fulfilled' ? x.value : ''))
+      : parsed.map(() => '');
+
+    pushUndo();
+    for (let i = 0; i < parsed.length; i++) {
+      const ev = parsed[i];
+      events.push({
+        date: ev.date || '',
+        title: ev.title || '이벤트 ' + (events.length + 1),
+        body: ev.body || '',
+        emoji: ev.emoji || (addEmoji ? EMOJIS[i % EMOJIS.length] : ''),
+        color: COLORS[i % COLORS.length],
+        image: imgUrls[i],
+        youtube: '',
+        tags: ev.tags || ['AI생성'],
+      });
+    }
+
+    renderTimeline();
+    saveToStorage();
+    showToast(`AI가 ${parsed.length}개의 이벤트를 생성했습니다.`, 'success');
+  } catch(e) {
+    showToast('AI 응답 파싱 오류. 다시 시도해주세요.', 'warn');
+  }
+}
+
+/* Overview Image */
+let overviewImageUrl = '';
+
+function toggleOverviewSection() {
+  const on = document.getElementById('toggleOverview').classList.contains('active');
+  document.getElementById('overviewSection').style.display = on ? 'block' : 'none';
+}
+
+async function generateOverviewImage() {
+  const imageKey = getApiKey('image');
+  if (!imageKey) { showToast('이미지 생성 API 키를 입력해주세요.', 'warn'); return; }
+  if (events.length === 0) { showToast('이벤트를 먼저 추가해주세요.', 'warn'); return; }
+
+  const title = document.getElementById('timelineTitle').value.trim() || '타임라인';
+  const style = document.getElementById('overviewStyle').value;
+  const mood = document.getElementById('overviewMood').value;
+  const extra = document.getElementById('overviewExtraPrompt').value.trim();
+  const imageModel = document.getElementById('aiModel-image').value;
+
+  const styleMap = {
+    infographic: 'structured multi-panel infographic poster with grid-based card layout, icon badges, section headers with colored accent bars, and data visualization elements on a textured parchment/kraft paper background',
+    illustration: 'editorial illustration with detailed hand-drawn elements, soft gradients, layered compositions, and artistic vignettes in each section',
+    watercolor: 'watercolor painting with wet-on-wet blending, visible brush textures, organic color transitions, and painted panel borders',
+    flat: 'modern flat design poster with bold geometric card sections, vivid solid colors, long shadows, and sharp visual hierarchy',
+    vintage: 'vintage retro academic poster with halftone patterns, aged paper texture, sepia-brown-cream palette, woodcut-style illustrations, and classic typographic hierarchy',
+    minimalist: 'ultra-minimalist Swiss design poster with generous whitespace, thin hairline dividers, monochrome palette with one accent color, and strict grid alignment',
+    '3d': 'polished 3D isometric infographic with floating card panels, soft ambient occlusion, glass-morphism sections, and cinematic lighting',
+    photorealistic: 'photorealistic magazine-quality layout with photo cutouts, layered compositions, depth of field effects, and editorial design sensibility',
+  };
+  const moodMap = {
+    professional: 'authoritative and scholarly with deep browns, warm grays, and parchment tones — like an academic reference poster',
+    warm: 'warm and inviting with golden-amber tones, soft candlelight atmosphere, and nostalgic warmth',
+    cool: 'cool and modern with slate-blue and silver palette, sleek metallic accents, and clean digital aesthetic',
+    dramatic: 'dramatic with high contrast chiaroscuro, deep shadows, rich saturated accents on dark background',
+    cheerful: 'bright and cheerful with pastel rainbow palette, rounded shapes, playful icons, and lively energy',
+    elegant: 'refined elegance with muted ivory-gold-burgundy tones, ornamental borders, and sophisticated typography hints',
+  };
+
+  const totalEvents = events.length;
+  const eventDetails = events.slice(0, 12).map((e, i) => {
+    const pos = i + 1;
+    let detail = `[${pos}] ${e.date} — ${e.title}`;
+    if (e.body) detail += ': ' + e.body.substring(0, 80);
+    if (e.tags && e.tags.length) detail += ' [tags: ' + e.tags.join(', ') + ']';
+    return detail;
+  }).join('\n');
+
+  const firstDate = events[0]?.date || '';
+  const lastDate = events[events.length - 1]?.date || '';
+
+  const prompt = `You are a world-class Korean editorial infographic designer. Create a single, highly detailed, structured infographic poster image (16:9 landscape).
+
+=== SUBJECT ===
+"${title}" (${firstDate} ~ ${lastDate})
+
+=== CONTENT DATA ===
+${eventDetails}
+
+=== LAYOUT STRUCTURE (multi-panel grid, NOT a simple horizontal timeline) ===
+Design a structured infographic poster with MULTIPLE organized sections/panels arranged in a magazine-style grid layout:
+
+TOP ZONE:
+- Large hero visual area: a prominent central illustration or photographic composition representing the core subject
+- Subject title displayed prominently in Korean (한국어)
+- Subtitle with date range and brief identity line
+
+MIDDLE ZONE (2-3 column grid of card panels):
+- "한 줄 정체성" panel: one-sentence identity summary with an icon badge
+- "핵심 키워드" panel: 6-8 keyword badges/chips with small pictogram icons arranged in a 2×3 or 2×4 grid
+- "주요 업적/사건" panel: bullet-pointed list of key achievements with checkmark icons
+- "대표 항목" panel: list of notable items/works with bullet dots
+
+BOTTOM ZONE:
+- "연표" horizontal chronological timeline strip spanning full width: circles with dates connected by a line, with brief milestone labels below each node
+- 2-3 smaller context panels in a row: "시대적 배경", "영향과 유산", "관련 네트워크"
+
+=== VISUAL DESIGN RULES ===
+- Each section panel has: colored accent bar on left/top edge, section header with icon badge, clean internal layout
+- Use Korean text (한국어) for ALL labels, headers, and content — this is critical
+- Section headers use format: "icon + 한국어 제목" (e.g., "📌 핵심 키워드", "✅ 주요 업적")
+- Background: subtle textured surface (parchment, linen, or matte paper)
+- Color-coded accent bars per section for visual grouping
+- Small illustrative vignettes, historical photos, or symbolic artwork integrated naturally
+- Professional Korean typography: bold headers, medium body text, clean hierarchy
+- Thin divider lines and rounded-corner card panels with subtle shadows
+
+STYLE: ${styleMap[style] || style}
+MOOD: ${moodMap[mood] || mood}
+${extra ? 'ADDITIONAL DIRECTION: ' + extra : ''}
+
+=== CRITICAL REQUIREMENTS ===
+- ALL text MUST be in Korean (한국어) using correct Korean characters (Hangul/한글) — headers, labels, content, everything
+- Korean text must be FULLY legible, correctly spelled, with no broken/garbled characters — double-check every Korean word
+- Use clean Korean sans-serif fonts (like Noto Sans KR or Pretendard style) for readability
+- This is NOT a simple timeline — it is a structured MULTI-PANEL INFOGRAPHIC POSTER
+- Must look like a professionally designed editorial poster or museum exhibit panel
+- Dense with information but visually organized and easy to scan
+- Include actual readable Korean text content derived from the events data
+- IMPORTANT: All content must fit ENTIRELY within the image boundaries — NO cropping, NO cut-off text, NO elements bleeding off the edges
+- Leave a safe margin (at least 3% padding) on all four sides so nothing is clipped
+- Every panel, text block, and visual element must be 100% visible and complete within the frame
+- High resolution, print-quality rendering with professional color grading
+- The overall impression should match a premium Korean educational infographic poster like those in Korean museums or textbooks`;
+
+  const wrap = document.getElementById('overviewImageWrap');
+  wrap.innerHTML = `<div class="generating-overlay"><div class="spinner"></div><p>인포그래픽 콘텐츠 구성 중...</p><p style="font-size:0.68rem;opacity:0.7;">1/2단계: AI 콘텐츠 분석</p></div>` + wrap.innerHTML;
+
+  try {
+    let enrichedPrompt = prompt;
+    const textProvider = getActiveAiProvider();
+    if (textProvider) {
+      const contentPrompt = `주제 "${title}"에 대한 인포그래픽 포스터용 콘텐츠를 한국어로 구성해주세요.
+다음 이벤트 데이터를 바탕으로:
+${eventDetails}
+
+아래 섹션들을 각각 2-3줄로 작성 (JSON 형식, 한국어만):
+{
+  "identity": "한 줄 정체성 요약",
+  "keywords": ["핵심키워드1", "핵심키워드2", ... (6~8개)],
+  "achievements": ["주요 업적/사건 1", "주요 업적/사건 2", ... (4개)],
+  "background": "시대적 배경 요약 (2문장)",
+  "legacy": "영향과 유산 요약 (2문장)",
+  "visual_description": "이 주제를 대표하는 중앙 히어로 이미지에 대한 상세 시각 묘사 (3문장, 영어)"
+}
+순수 JSON만 반환하세요.`;
+      const contentResult = await callAiText(contentPrompt);
+      if (contentResult) {
+        try {
+          const jsonMatch = contentResult.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const content = JSON.parse(jsonMatch[0]);
+            enrichedPrompt = prompt + `
+
+=== AI-ENRICHED CONTENT (use this Korean text in the poster) ===
+한 줄 정체성: ${content.identity || ''}
+핵심 키워드: ${(content.keywords || []).join(', ')}
+주요 업적: ${(content.achievements || []).join(' / ')}
+시대적 배경: ${content.background || ''}
+영향과 유산: ${content.legacy || ''}
+Hero visual description: ${content.visual_description || ''}`;
+          }
+        } catch(_) {}
+      }
+    }
+
+    const overlay = wrap.querySelector('.generating-overlay');
+    if (overlay) overlay.innerHTML = `<div class="spinner"></div><p>이미지 생성 중...</p><p style="font-size:0.68rem;opacity:0.7;">2/2단계: AI 이미지 렌더링</p>`;
+
+    let imageUrl = '';
+    const r = await apiProxy('https://api.openai.com/v1/images/generations', 'POST',
+      { 'Authorization': 'Bearer ' + imageKey, 'Content-Type': 'application/json' },
+      { model: 'gpt-image-1', prompt: enrichedPrompt, n: 1, size: '1536x1024', quality: 'high', output_format: 'png' }
+    );
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    if (d.data && d.data[0]) {
+      if (d.data[0].b64_json) imageUrl = 'data:image/png;base64,' + d.data[0].b64_json;
+      else if (d.data[0].url) imageUrl = d.data[0].url;
+    }
+
+    if (!imageUrl) throw new Error('이미지 URL을 받지 못했습니다.');
+
+    showOverviewImage(imageUrl);
+    overviewImageUrl = imageUrl;
+    showToast('한장 타임라인 인포그래픽이 생성되었습니다.', 'success');
+  } catch(e) {
+    showToast('이미지 생성 오류: ' + e.message, 'warn');
+  } finally {
+    const overlay = wrap.querySelector('.generating-overlay');
+    if (overlay) overlay.remove();
+  }
+}
+
+function showOverviewImage(url) {
+  const img = document.getElementById('overviewImg');
+  const placeholder = document.getElementById('overviewPlaceholder');
+  const badge = document.getElementById('overviewBadge');
+  const actions = document.getElementById('overviewActions');
+  img.src = url;
+  img.style.display = 'block';
+  placeholder.style.display = 'none';
+  badge.style.display = 'block';
+  actions.style.display = 'flex';
+}
+
+function removeOverviewImage() {
+  const img = document.getElementById('overviewImg');
+  const placeholder = document.getElementById('overviewPlaceholder');
+  const badge = document.getElementById('overviewBadge');
+  const actions = document.getElementById('overviewActions');
+  img.src = '';
+  img.style.display = 'none';
+  placeholder.style.display = 'block';
+  badge.style.display = 'none';
+  actions.style.display = 'none';
+  overviewImageUrl = '';
+  showToast('이미지가 삭제되었습니다.', 'info');
+}
+
+function regenerateOverview() {
+  removeOverviewImage();
+  generateOverviewImage();
+}
+
+function downloadOverviewImage() {
+  if (!overviewImageUrl) { showToast('다운로드할 이미지가 없습니다.', 'warn'); return; }
+  if (overviewImageUrl.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = overviewImageUrl;
+    a.download = 'timeline-overview.png';
+    a.click();
+  } else {
+    fetch(overviewImageUrl)
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'timeline-overview.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        window.open(overviewImageUrl, '_blank');
+      });
+  }
+  showToast('이미지 다운로드 시작', 'success');
+}
+
+/* Keyboard shortcut */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id));
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openAddEvent(); }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+/* ===== #1 MINIMAP ===== */
+function renderMinimap() {
+  const map = document.getElementById('timelineMinimap');
+  if (!map || events.length < 3) { if (map) map.innerHTML = ''; return; }
+  map.innerHTML = events.map((ev, i) => {
+    const label = (ev.date || ev.title || '').substring(0, 20);
+    return `<div class="minimap-dot" data-label="${escHTML(label)}" style="background:${ev.color}" onclick="scrollToEvent(${i})"></div>`;
+  }).join('');
+}
+function scrollToEvent(idx) {
+  const el = document.querySelectorAll('.timeline-event')[idx];
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ===== #3 LIGHTBOX ===== */
+let lightboxImages = [];
+let lightboxIdx = 0;
+function openLightbox(src) {
+  lightboxImages = events.filter(e => e.image).map(e => e.image);
+  lightboxIdx = Math.max(0, lightboxImages.indexOf(src));
+  showLightboxImage();
+  document.getElementById('lightbox').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function navLightbox(dir, e) {
+  if (e) e.stopPropagation();
+  lightboxIdx = (lightboxIdx + dir + lightboxImages.length) % lightboxImages.length;
+  showLightboxImage();
+}
+function showLightboxImage() {
+  document.getElementById('lightboxImg').src = lightboxImages[lightboxIdx];
+  document.getElementById('lightboxCounter').textContent = `${lightboxIdx + 1} / ${lightboxImages.length}`;
+}
+
+/* ===== #4 COVER IMAGE ===== */
+function setCoverImage(url) {
+  localStorage.setItem('tl-cover-image', url || '');
+  renderCover();
+}
+function renderCover() {
+  const area = document.getElementById('coverImageArea');
+  const url = localStorage.getItem('tl-cover-image');
+  if (url) {
+    area.innerHTML = `<div class="timeline-cover"><img src="${escHTML(url)}" alt=""><div class="timeline-cover-gradient"></div></div>`;
+  } else {
+    area.innerHTML = '';
+  }
+}
+
+/* ===== #5 IMPORTANCE ===== */
+function getImportanceStars(level) {
+  if (!level || level === 0) return '';
+  return `<span class="importance-stars">${'<span class="star">★</span>'.repeat(level)}</span>`;
+}
+
+/* ===== #7 SEARCH & FILTER ===== */
+function filterEvents() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const mode = document.getElementById('searchFilter').value;
+  const els = document.querySelectorAll('.timeline-event');
+  els.forEach((el, i) => {
+    if (!q) { el.classList.remove('search-hidden'); removeHighlights(el); return; }
+    const ev = events[i];
+    if (!ev) return;
+    let match = false;
+    if (mode === 'all' || mode === 'title') match = match || (ev.title || '').toLowerCase().includes(q);
+    if (mode === 'all' || mode === 'tag') match = match || (ev.tags || []).some(t => t.toLowerCase().includes(q));
+    if (mode === 'all' || mode === 'date') match = match || (ev.date || '').toLowerCase().includes(q);
+    if (mode === 'all') match = match || (ev.body || '').toLowerCase().includes(q);
+    el.classList.toggle('search-hidden', !match);
+    if (match && q) highlightText(el, q); else removeHighlights(el);
+  });
+}
+function highlightText(el, q) {
+  removeHighlights(el);
+  const title = el.querySelector('.timeline-card-title');
+  if (title) title.innerHTML = title.textContent.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<span class="search-highlight">$1</span>');
+}
+function removeHighlights(el) {
+  el.querySelectorAll('.search-highlight').forEach(s => { s.outerHTML = s.textContent; });
+}
+
+/* ===== #8 DUPLICATE ===== */
+function duplicateEvent(idx) {
+  pushUndo();
+  const clone = JSON.parse(JSON.stringify(events[idx]));
+  clone.title = clone.title + ' (복제)';
+  events.splice(idx + 1, 0, clone);
+  renderTimeline(); saveToStorage();
+  showToast('이벤트가 복제되었습니다.', 'success');
+}
+
+/* ===== #9 PDF EXPORT ===== */
+async function exportAsPDF() {
+  closeModal('exportModal');
+  showToast('PDF를 생성 중입니다...', 'info');
+  try {
+    const section = document.querySelector('.content');
+    const els = section.querySelectorAll('.timeline-event, .timeline-footer');
+    els.forEach(el => el.classList.add('tl-visible'));
+    const actions = section.querySelectorAll('.timeline-card-actions');
+    actions.forEach(a => a.style.display = 'none');
+    const layoutBtns = section.querySelector('.layout-switcher');
+    const searchBar = document.getElementById('searchBar');
+    if (layoutBtns) layoutBtns.style.display = 'none';
+    if (searchBar) searchBar.style.display = 'none';
+
+    const canvas = await html2canvas(section, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: getComputedStyle(document.body).backgroundColor, logging: false });
+
+    actions.forEach(a => a.style.display = '');
+    if (layoutBtns) layoutBtns.style.display = '';
+    if (searchBar) searchBar.style.display = '';
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const { jsPDF } = window.jspdf;
+    const pxW = canvas.width, pxH = canvas.height;
+    const pdfW = 210;
+    const pdfH = (pxH * pdfW) / pxW;
+    const pageH = 297;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let y = 0;
+    while (y < pdfH) {
+      if (y > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, -y, pdfW, pdfH);
+      y += pageH;
+    }
+    pdf.save(getExportFilename('pdf'));
+    showToast('PDF 파일이 다운로드되었습니다.', 'success');
+  } catch(e) {
+    showToast('PDF 생성 오류: ' + e.message, 'warn');
+  }
+}
+
+/* ===== #10 IMAGE DRAG & DROP ===== */
+function handleImageDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleImageFile(file);
+}
+function handleImageFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('evImage').value = e.target.result;
+    const dz = document.getElementById('imageDropzone');
+    dz.classList.add('has-image');
+    dz.textContent = '✅ ' + file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ===== #11 MULTILINGUAL AI ===== */
+function getLanguageInstruction() {
+  const lang = document.getElementById('genLanguage').value;
+  const map = { ko: '한국어로 작성해주세요.', en: 'Write in English.', zh: '请用中文撰写。', ja: '日本語で書いてください。' };
+  return map[lang] || map.ko;
+}
+
+init();
+</script>
+</body>
+</html>
