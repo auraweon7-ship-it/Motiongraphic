@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["cd kmeal-app && npm install --omit=dev"]
+
+[phases.build]
+cmds = ["echo 'no build step required'"]
+
+[start]
+cmd = "cd kmeal-app && node server.js"
